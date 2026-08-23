@@ -183,6 +183,13 @@
 
 .pb-rail__id { display: flex; align-items: center; gap: var(--pb-2); min-width: 0; }
 .pb-rail__code {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--pb-12); /* 3rem — every route badge keeps one identical shape */
+  white-space: nowrap;
+  text-align: center;
   font-family: var(--pb-font-mono);
   font-size: var(--pb-fs-2xs);
   font-weight: 600;
