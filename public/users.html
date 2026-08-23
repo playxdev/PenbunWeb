@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>ผู้ใช้และสิทธิ์ · PenbunWeb</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23f97316'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/css/01-tokens.css">
+<link rel="stylesheet" href="/assets/css/02-base.css">
+<link rel="stylesheet" href="/assets/css/03-layout.css">
+<link rel="stylesheet" href="/assets/css/04-components.css">
+<link rel="stylesheet" href="/assets/css/05-pages.css">
+<script>
+(function () {
+  try {
+    var c = localStorage.getItem("penbun.theme") || "auto";
+    var dark = c === "dark" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    var r = document.documentElement;
+    r.classList.add(dark ? "dark" : "light");
+    r.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    r.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="pb-skip-link" href="#pb-page">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div id="pb-page" data-page="users">
+  <div class="pb-pagehead">
+    <div class="pb-pagehead__titles">
+      <div class="pb-eyebrow">ระบบ</div>
+      <h1>ผู้ใช้และสิทธิ์</h1>
+      <p class="pb-pagehead__sub">โครงสร้าง RBAC ยังเป็นตัวอย่างหน้าตา รอการทำงานจริงในสคีมา v8</p>
+    </div>
+    <div class="pb-pagehead__actions"><button class="pb-btn pb-btn--secondary" data-stub="ยังไม่เปิดในรุ่นเบต้า">จัดการบทบาท</button><button class="pb-btn pb-btn--primary" data-stub="ฟอร์มยังไม่เปิดในรุ่นเบต้า">เชิญผู้ใช้</button></div>
+  </div>
+
+  <div class="pb-card">
+    <div class="pb-toolbar">
+      <div class="pb-toolbar__grow">
+        <div class="pb-inputgroup">
+          <span class="pb-inputgroup__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          </span>
+          <input class="pb-input" type="search" placeholder="ค้นหาในตาราง…" aria-label="ค้นหาในตาราง"
+                 data-table-filter="#tbl-users">
+        </div>
+      </div>
+      <select class="pb-select" aria-label="กรองตามสถานะ" style="width:auto">
+        <option>ทุกสถานะ</option><option>ใช้งาน</option><option>พักการใช้งาน</option>
+      </select>
+      <select class="pb-select" aria-label="กรองตามคลัง" style="width:auto">
+        <option>ทุกคลัง</option><option>DC-01 ศูนย์กระจายสินค้า</option><option>WH-02 คลังสาขา</option>
+      </select>
+      <button class="pb-btn pb-btn--secondary pb-btn--sm" data-stub="ตัวกรองขั้นสูงจะมาในรุ่นถัดไป">ตัวกรอง</button>
+    </div>
+
+    <div class="pb-tablewrap">
+      <table class="pb-table" id="tbl-users">
+        <thead><tr><th data-sort>ผู้ใช้</th><th data-sort>บทบาท</th><th data-sort>คลัง/สาขา</th><th data-sort>เข้าใช้ล่าสุด</th><th>สถานะ</th></tr></thead>
+        <tbody><tr><td><div class="pb-cell-main"><span class="pb-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="pb-cell-main__text"><span class="pb-cell-main__title">จักรพงษ์ ศรีวิไล</span><span class="pb-cell-main__meta">jack · jack@penbun.local</span></span></div></td><td><span class="pb-badge pb-badge--brand">ผู้ดูแลระบบ</span></td><td>ทุกคลัง</td><td class='pb-nowrap'>วันนี้ 08:02</td><td><span class="pb-badge pb-badge--pos">ใช้งาน</span></td></tr><tr><td><div class="pb-cell-main"><span class="pb-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="pb-cell-main__text"><span class="pb-cell-main__title">สมชาย เกษมสุข</span><span class="pb-cell-main__meta">somchai · somchai@penbun.local</span></span></div></td><td><span class="pb-badge pb-badge--muted">หัวหน้าคลัง</span></td><td>DC-01</td><td class='pb-nowrap'>วันนี้ 07:45</td><td><span class="pb-badge pb-badge--pos">ใช้งาน</span></td></tr><tr><td><div class="pb-cell-main"><span class="pb-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="pb-cell-main__text"><span class="pb-cell-main__title">อารีย์ สุขใจ</span><span class="pb-cell-main__meta">aree · aree@penbun.local</span></span></div></td><td><span class="pb-badge pb-badge--muted">พนักงานคลัง</span></td><td>WH-02</td><td class='pb-nowrap'>เมื่อวาน 17:20</td><td><span class="pb-badge pb-badge--pos">ใช้งาน</span></td></tr><tr><td><div class="pb-cell-main"><span class="pb-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="pb-cell-main__text"><span class="pb-cell-main__title">ธนา พงษ์ไพบูลย์</span><span class="pb-cell-main__meta">thana · thana@penbun.local</span></span></div></td><td><span class="pb-badge pb-badge--muted">ฝ่ายขาย</span></td><td>WH-03</td><td class='pb-nowrap'>19 ส.ค. 2569</td><td><span class="pb-badge pb-badge--warn">รอยืนยันอีเมล</span></td></tr><tr><td><div class="pb-cell-main"><span class="pb-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span class="pb-cell-main__text"><span class="pb-cell-main__title">ปรียา วงศ์ทอง</span><span class="pb-cell-main__meta">preeya · preeya@penbun.local</span></span></div></td><td><span class="pb-badge pb-badge--muted">ผู้ดูรายงาน</span></td><td>ทุกคลัง</td><td class='pb-nowrap'>2 ส.ค. 2569</td><td><span class="pb-badge pb-badge--neg">ระงับการใช้งาน</span></td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="pb-card__foot">
+      <span>แสดง 5 จาก 5 รายการ</span>
+      <nav class="pb-pagination" aria-label="แบ่งหน้า">
+        <button aria-label="หน้าก่อนหน้า" data-stub="ตัวอย่าง UI">‹</button>
+        <button aria-current="true">1</button>
+        <button data-stub="ตัวอย่าง UI">2</button>
+        <button data-stub="ตัวอย่าง UI">3</button>
+        <button aria-label="หน้าถัดไป" data-stub="ตัวอย่าง UI">›</button>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/assets/js/main.js"></script>
+</body>
+</html>

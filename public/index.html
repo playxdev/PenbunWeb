@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="PenbunWeb — ระบบจัดจำหน่ายหนังสือและเครื่องเขียน">
+<meta name="color-scheme" content="light dark">
+<title>เข้าสู่ระบบ · PenbunWeb</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23f97316'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/css/01-tokens.css">
+<link rel="stylesheet" href="/assets/css/02-base.css">
+<link rel="stylesheet" href="/assets/css/03-layout.css">
+<link rel="stylesheet" href="/assets/css/04-components.css">
+<link rel="stylesheet" href="/assets/css/05-pages.css">
+<!-- No-flash theme boot: must run before first paint. -->
+<script>
+(function () {
+  try {
+    var c = localStorage.getItem("penbun.theme") || "auto";
+    var dark = c === "dark" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    var r = document.documentElement;
+    r.classList.add(dark ? "dark" : "light");
+    r.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    r.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<main class="pb-auth">
+
+  <!-- Left: the stock ledger, drawn. -->
+  <section class="pb-auth__aside" aria-hidden="true">
+    <a class="pb-auth__brand" href="/index.html">
+      <span class="pb-brand__mark">P</span>
+      <span class="pb-brand__text">
+        <span class="pb-brand__name">Penbun System</span>
+        <span class="pb-brand__meta">WHOLESALE DISTRIBUTION</span>
+      </span>
+    </a>
+
+    <div class="pb-auth__pitch">
+      <h2>สต็อกเดียว<br>สายเดียวกัน<br><em>ตัวเลขตรงกัน</em></h2>
+      <p>ศูนย์กระจายสินค้า คลังสาขา สายจัดส่ง และร้านฝากขาย ทำงานบนฐานข้อมูลชุดเดียว</p>
+    </div>
+
+    <div class="pb-auth__stats">
+      <div>
+        <div class="pb-auth__stat-value">32</div>
+        <div class="pb-auth__stat-label">ตารางข้อมูล</div>
+      </div>
+      <div>
+        <div class="pb-auth__stat-value">5</div>
+        <div class="pb-auth__stat-label">สายจัดส่ง</div>
+      </div>
+      <div>
+        <div class="pb-auth__stat-value">41.6K</div>
+        <div class="pb-auth__stat-label">ชิ้นในคลัง</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Right: the form. -->
+  <section class="pb-auth__panel" style="position:relative">
+    <div class="pb-auth__topline">
+      <button class="pb-iconbtn" data-theme-toggle aria-label="สลับโหมดสีสว่าง/มืด" title="สลับโหมดสี"></button>
+    </div>
+
+    <form class="pb-auth__form" id="pb-signin" novalidate>
+      <h1 class="pb-auth__title">เข้าสู่ระบบ</h1>
+      <p class="pb-auth__lead">ใช้บัญชีผู้ใช้ของ Penbun System · รุ่นเบต้า 1.0.0</p>
+
+      <div style="margin-top:var(--pb-6)"></div>
+
+      <div class="pb-field">
+        <label class="pb-label" for="pb-username">ชื่อผู้ใช้ หรือ อีเมล</label>
+        <div class="pb-inputgroup">
+          <span class="pb-inputgroup__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+          </span>
+          <input class="pb-input" id="pb-username" name="username" type="text" autocomplete="username"
+                 placeholder="jack" value="jack" required>
+        </div>
+      </div>
+
+      <div class="pb-field">
+        <label class="pb-label" for="pb-password">รหัสผ่าน</label>
+        <div class="pb-inputgroup pb-inputgroup--action">
+          <span class="pb-inputgroup__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          </span>
+          <input class="pb-input" id="pb-password" name="password" type="password" autocomplete="current-password"
+                 placeholder="••••••••" value="penbun" required>
+          <button type="button" class="pb-iconbtn pb-iconbtn--sm pb-inputgroup__action" data-reveal aria-label="แสดงรหัสผ่าน">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="pb-row" style="margin-top:var(--pb-4);justify-content:space-between">
+        <label class="pb-check"><input type="checkbox" checked> จดจำอุปกรณ์นี้</label>
+        <a href="#" data-stub="การกู้คืนรหัสผ่านจะมาในรุ่นถัดไป" style="font-size:var(--pb-fs-xs)">ลืมรหัสผ่าน?</a>
+      </div>
+
+      <button class="pb-btn pb-btn--primary pb-btn--lg pb-btn--block" type="submit" style="margin-top:var(--pb-5)">
+        เข้าสู่ระบบ
+      </button>
+
+      <div class="pb-auth__divider">รุ่นทดลอง</div>
+
+      <button class="pb-btn pb-btn--secondary pb-btn--block" type="button" data-demo-login>
+        เข้าใช้งานแบบสาธิต (ไม่ตรวจสอบรหัสผ่าน)
+      </button>
+
+      <div class="pb-alert pb-alert--brand" style="margin-top:var(--pb-5)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8v.2"/></svg>
+        <div>
+          <div class="pb-alert__title">นี่คือรุ่นเบต้าสำหรับตรวจ UI</div>
+          <div class="pb-muted" style="font-size:var(--pb-fs-xs)">ยังไม่เชื่อมต่อ PenbunAPI กรอกอะไรก็เข้าสู่หน้าแดชบอร์ดได้</div>
+        </div>
+      </div>
+
+      <p class="pb-auth__foot">Penbun System · PenbunWeb beta 1.0.0 · © 2569</p>
+    </form>
+  </section>
+</main>
+
+<script type="module" src="/assets/js/standalone.js"></script>
+</body>
+</html>

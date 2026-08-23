@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>ตั้งค่าระบบ · PenbunWeb</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23f97316'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/css/01-tokens.css">
+<link rel="stylesheet" href="/assets/css/02-base.css">
+<link rel="stylesheet" href="/assets/css/03-layout.css">
+<link rel="stylesheet" href="/assets/css/04-components.css">
+<link rel="stylesheet" href="/assets/css/05-pages.css">
+<script>
+(function () {
+  try {
+    var c = localStorage.getItem("penbun.theme") || "auto";
+    var dark = c === "dark" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    var r = document.documentElement;
+    r.classList.add(dark ? "dark" : "light");
+    r.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    r.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="pb-skip-link" href="#pb-page">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div id="pb-page" data-page="settings">
+  <div class="pb-pagehead">
+    <div class="pb-pagehead__titles">
+      <div class="pb-eyebrow">ระบบ</div>
+      <h1>ตั้งค่าระบบ</h1>
+      <p class="pb-pagehead__sub">ค่าตั้งต้นขององค์กร การแสดงผล และข้อมูลรุ่นของแต่ละส่วนประกอบ</p>
+    </div>
+    <div class="pb-pagehead__actions">
+      <button class="pb-btn pb-btn--secondary" data-stub="ยังไม่บันทึกจริงในเบต้า">ยกเลิก</button>
+      <button class="pb-btn pb-btn--primary" data-stub="ยังไม่บันทึกจริงในเบต้า">บันทึกการตั้งค่า</button>
+    </div>
+  </div>
+
+  <div class="pb-settings">
+    <nav class="pb-settings__nav" aria-label="หมวดการตั้งค่า">
+      <a href="#s-org" class="is-active">ข้อมูลองค์กร</a>
+      <a href="#s-display">การแสดงผล</a>
+      <a href="#s-ops">การจัดจำหน่าย</a>
+      <a href="#s-notify">การแจ้งเตือน</a>
+      <a href="#s-system">เกี่ยวกับระบบ</a>
+    </nav>
+
+    <div class="pb-stack">
+
+      <section class="pb-card" id="s-org">
+        <div class="pb-card__head"><div>
+          <div class="pb-card__title">ข้อมูลองค์กร</div>
+          <div class="pb-card__sub">ใช้พิมพ์บนหัวเอกสารทุกประเภท</div>
+        </div></div>
+        <div class="pb-card__body">
+          <div class="pb-grid">
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="org-name">ชื่อกิจการ <span class="pb-label__req">*</span></label>
+              <input class="pb-input" id="org-name" value="บริษัท เพนบัน ดิสทริบิวชั่น จำกัด">
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="org-tax">เลขประจำตัวผู้เสียภาษี</label>
+              <input class="pb-input pb-num" id="org-tax" value="0125566000123">
+            </div></div>
+            <div class="pb-col-12"><div class="pb-field">
+              <label class="pb-label" for="org-addr">ที่อยู่</label>
+              <textarea class="pb-textarea" id="org-addr">99/12 หมู่ 5 ถนนบางกรวย–ไทรน้อย ตำบลบางบัวทอง อำเภอบางบัวทอง จังหวัดนนทบุรี 11110</textarea>
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-tel">โทรศัพท์</label>
+              <input class="pb-input pb-num" id="org-tel" value="02-571-8800">
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-cur">สกุลเงิน</label>
+              <select class="pb-select" id="org-cur"><option>THB — บาท</option><option>USD — ดอลลาร์สหรัฐ</option></select>
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-vat">อัตราภาษีมูลค่าเพิ่ม</label>
+              <select class="pb-select" id="org-vat"><option>7%</option><option>0% (ยกเว้น)</option></select>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pb-card" id="s-display">
+        <div class="pb-card__head"><div>
+          <div class="pb-card__title">การแสดงผล</div>
+          <div class="pb-card__sub">ค่าที่ตั้งไว้ที่นี่จะถูกจำไว้ในเบราว์เซอร์นี้เท่านั้น</div>
+        </div></div>
+        <div class="pb-card__body pb-stack">
+          <div class="pb-row" style="justify-content:space-between">
+            <div>
+              <div style="font-weight:600">ธีมสี</div>
+              <div class="pb-hint">โหมดอัตโนมัติจะตามการตั้งค่าของเครื่อง</div>
+            </div>
+            <div class="pb-segment" role="group" aria-label="เลือกธีม">
+              <button type="button" data-theme-value="light" aria-pressed="false">สว่าง</button>
+              <button type="button" data-theme-value="dark" aria-pressed="false">มืด</button>
+              <button type="button" data-theme-value="auto" aria-pressed="false">อัตโนมัติ</button>
+            </div>
+          </div>
+          <hr>
+          <label class="pb-switch" style="justify-content:space-between;width:100%">
+            <span>
+              <span style="font-weight:600;display:block">ย่อเมนูด้านซ้ายเป็นค่าเริ่มต้น</span>
+              <span class="pb-hint">เหมาะกับจอกว้างที่ต้องดูตารางหลายคอลัมน์</span>
+            </span>
+            <span style="display:inline-flex"><input type="checkbox"><span class="pb-switch__track"></span></span>
+          </label>
+          <hr>
+          <label class="pb-switch" style="justify-content:space-between;width:100%">
+            <span>
+              <span style="font-weight:600;display:block">แสดงตัวเลขแบบย่อในการ์ดสรุป</span>
+              <span class="pb-hint">เช่น 1.28M แทน 1,284,500.00</span>
+            </span>
+            <span style="display:inline-flex"><input type="checkbox" checked><span class="pb-switch__track"></span></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="pb-card" id="s-ops">
+        <div class="pb-card__head"><div>
+          <div class="pb-card__title">การจัดจำหน่าย</div>
+          <div class="pb-card__sub">ค่าตั้งต้นของสายจัดส่งและการฝากขาย</div>
+        </div></div>
+        <div class="pb-card__body">
+          <div class="pb-grid">
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="ops-dc">คลังต้นทางเริ่มต้น</label>
+              <select class="pb-select" id="ops-dc"><option>DC-01 ศูนย์กระจายสินค้า</option><option>WH-02 คลังสาขาบางแค</option></select>
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="ops-cycle">รอบปิดยอดฝากขาย</label>
+              <select class="pb-select" id="ops-cycle"><option>สิ้นเดือน</option><option>ทุก 15 วัน</option><option>รายสัปดาห์</option></select>
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="ops-reserve">กันสต็อกเมื่อสร้างใบสั่งขาย</label>
+              <select class="pb-select" id="ops-reserve"><option>กันทันทีเมื่อบันทึกร่าง</option><option>กันเมื่อผ่านรายการ</option></select>
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="ops-neg">อนุญาตให้สต็อกติดลบ</label>
+              <select class="pb-select" id="ops-neg"><option>ไม่อนุญาต</option><option>อนุญาตเฉพาะผู้ดูแลระบบ</option></select>
+              <span class="pb-hint">ค่านี้บังคับใช้ที่ฝั่งฐานข้อมูล ไม่ใช่ที่หน้าจอ</span>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pb-card" id="s-notify">
+        <div class="pb-card__head"><div>
+          <div class="pb-card__title">การแจ้งเตือน</div>
+          <div class="pb-card__sub">เลือกเหตุการณ์ที่ต้องการให้แจ้งบนหน้าจอ</div>
+        </div></div>
+        <div class="pb-card__body pb-stack">
+          <label class="pb-check"><input type="checkbox" checked> สินค้าต่ำกว่าจุดสั่งซื้อ</label>
+          <label class="pb-check"><input type="checkbox" checked> สายจัดส่งมีจุดส่งล่าช้า</label>
+          <label class="pb-check"><input type="checkbox" checked> เอกสารรอตรวจสอบเกิน 24 ชั่วโมง</label>
+          <label class="pb-check"><input type="checkbox"> ลูกค้าเกินวงเงินเครดิต</label>
+          <label class="pb-check"><input type="checkbox"> มีการปรับปรุงยอดสต็อกด้วยมือ</label>
+        </div>
+      </section>
+
+      <section class="pb-card" id="s-system">
+        <div class="pb-card__head"><div>
+          <div class="pb-card__title">เกี่ยวกับระบบ</div>
+          <div class="pb-card__sub">รุ่นของแต่ละส่วนประกอบใน Penbun System</div>
+        </div></div>
+        <div class="pb-card__body">
+          <dl class="pb-deflist">
+            <dt>PenbunWeb</dt><dd>beta 1.0.0 <span class="pb-badge pb-badge--brand">รุ่นทดลอง</span></dd>
+            <dt>PenbunAPI</dt><dd class="pb-num">v4.0.0 · Go 1.26 · Fiber v3.5.0</dd>
+            <dt>PenbunSQL</dt><dd class="pb-num">v7.0.0 · Microsoft SQL Server</dd>
+            <dt>สถานะการเชื่อมต่อ</dt><dd><span class="pb-badge pb-badge--warn">ยังไม่เชื่อมต่อ API (ใช้ข้อมูลตัวอย่าง)</span></dd>
+            <dt>โฮสต์</dt><dd class="pb-num">Digital Ocean Droplet · sgp1</dd>
+          </dl>
+        </div>
+        <div class="pb-card__foot">
+          <span>ข้อมูลรุ่นนี้จะดึงจาก <span class="pb-num">GET /api/v4/system/version</span> เมื่อเชื่อมต่อ API แล้ว</span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/assets/js/main.js"></script>
+</body>
+</html>

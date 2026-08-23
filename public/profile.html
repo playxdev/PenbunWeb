@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>โปรไฟล์ · PenbunWeb</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23f97316'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/css/01-tokens.css">
+<link rel="stylesheet" href="/assets/css/02-base.css">
+<link rel="stylesheet" href="/assets/css/03-layout.css">
+<link rel="stylesheet" href="/assets/css/04-components.css">
+<link rel="stylesheet" href="/assets/css/05-pages.css">
+<script>
+(function () {
+  try {
+    var c = localStorage.getItem("penbun.theme") || "auto";
+    var dark = c === "dark" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    var r = document.documentElement;
+    r.classList.add(dark ? "dark" : "light");
+    r.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    r.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="pb-skip-link" href="#pb-page">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div id="pb-page" data-page="profile">
+  <div class="pb-pagehead">
+    <div class="pb-pagehead__titles">
+      <div class="pb-eyebrow">บัญชีผู้ใช้</div>
+      <h1>โปรไฟล์ของฉัน</h1>
+      <p class="pb-pagehead__sub">ข้อมูลผู้ใช้ สิทธิ์ที่ได้รับ และอุปกรณ์ที่กำลังใช้งาน</p>
+    </div>
+    <div class="pb-pagehead__actions">
+      <button class="pb-btn pb-btn--secondary" data-stub="ยังไม่เปิดในรุ่นเบต้า">เปลี่ยนรหัสผ่าน</button>
+      <button class="pb-btn pb-btn--primary" data-stub="ยังไม่บันทึกจริงในเบต้า">บันทึกการแก้ไข</button>
+    </div>
+  </div>
+
+  <div class="pb-grid">
+    <div class="pb-col-4">
+      <div class="pb-card">
+        <div class="pb-card__body" style="text-align:center">
+          <span class="pb-avatar pb-avatar--lg pb-avatar--brand" style="margin:0 auto">จศ</span>
+          <h3 style="margin-top:var(--pb-3)">จักรพงษ์ ศรีวิไล</h3>
+          <div class="pb-muted" style="font-size:var(--pb-fs-sm)">jack@penbun.local</div>
+          <div style="margin-top:var(--pb-3)"><span class="pb-badge pb-badge--brand">ผู้ดูแลระบบ</span></div>
+          <button class="pb-btn pb-btn--secondary pb-btn--sm" style="margin-top:var(--pb-4)"
+                  data-stub="การอัปโหลดรูปจะมาในรุ่นถัดไป">เปลี่ยนรูปโปรไฟล์</button>
+        </div>
+        <div class="pb-card__foot">
+          <span>เข้าใช้ล่าสุด วันนี้ 08:02 น.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pb-col-8">
+      <div class="pb-card">
+        <div class="pb-tabs" role="tablist">
+          <button role="tab" aria-selected="true" aria-controls="tab-info">ข้อมูลผู้ใช้</button>
+          <button role="tab" aria-selected="false" aria-controls="tab-perm">สิทธิ์การใช้งาน</button>
+          <button role="tab" aria-selected="false" aria-controls="tab-sess">อุปกรณ์ที่ใช้งาน</button>
+        </div>
+
+        <div class="pb-card__body" role="tabpanel" id="tab-info">
+          <div class="pb-grid">
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="p-name">ชื่อ–สกุล</label>
+              <input class="pb-input" id="p-name" value="จักรพงษ์ ศรีวิไล">
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="p-user">ชื่อผู้ใช้</label>
+              <input class="pb-input" id="p-user" value="jack" readonly>
+              <span class="pb-hint">ชื่อผู้ใช้เปลี่ยนไม่ได้ ผูกกับบันทึกทุกรายการในระบบ</span>
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="p-mail">อีเมล</label>
+              <input class="pb-input" id="p-mail" type="email" value="jack@penbun.local">
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="p-tel">โทรศัพท์</label>
+              <input class="pb-input pb-num" id="p-tel" value="081-234-5678">
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="p-branch">คลัง/สาขาหลัก</label>
+              <select class="pb-select" id="p-branch"><option>DC-01 ศูนย์กระจายสินค้า</option><option>WH-02 คลังสาขาบางแค</option></select>
+            </div></div>
+            <div class="pb-col-6"><div class="pb-field">
+              <label class="pb-label" for="p-lang">ภาษา</label>
+              <select class="pb-select" id="p-lang"><option>ไทย</option><option>English</option></select>
+            </div></div>
+          </div>
+        </div>
+
+        <div class="pb-card__body pb-hide" role="tabpanel" id="tab-perm">
+          <div class="pb-alert pb-alert--brand" style="margin-bottom:var(--pb-4)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8v.2"/></svg>
+            <div>
+              <div class="pb-alert__title">RBAC ยังไม่ทำงานจริงในรุ่นนี้</div>
+              <div class="pb-muted" style="font-size:var(--pb-fs-xs)">ตารางด้านล่างแสดงโครงสิทธิ์ที่วางไว้ รอ PenbunSQL v8</div>
+            </div>
+          </div>
+          <div class="pb-tablewrap">
+            <table class="pb-table">
+              <thead><tr><th>ส่วนงาน</th><th>ดู</th><th>สร้าง</th><th>แก้ไข</th><th>ยกเลิก</th></tr></thead>
+              <tbody>
+                <tr><td>สินค้าและสต็อก</td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td></tr>
+                <tr><td>เอกสารทั้งหมด</td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td></tr>
+                <tr><td>การจัดจำหน่าย</td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--neg">ไม่ได้</span></td></tr>
+                <tr><td>ผู้ใช้และสิทธิ์</td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td></tr>
+                <tr><td>ตั้งค่าระบบ</td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--muted">—</span></td><td><span class="pb-badge pb-badge--pos">ได้</span></td><td><span class="pb-badge pb-badge--muted">—</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="pb-card__body pb-hide" role="tabpanel" id="tab-sess">
+          <div class="pb-tablewrap">
+            <table class="pb-table">
+              <thead><tr><th>อุปกรณ์</th><th>ตำแหน่ง</th><th>ใช้งานล่าสุด</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="pb-cell-main__text"><div class="pb-cell-main__title">Chrome · Windows 11</div><div class="pb-cell-main__meta">อุปกรณ์นี้</div></div></td>
+                  <td>นนทบุรี, ไทย</td><td class="pb-nowrap">กำลังใช้งาน</td>
+                  <td class="pb-right"><span class="pb-badge pb-badge--pos">ปัจจุบัน</span></td>
+                </tr>
+                <tr>
+                  <td><div class="pb-cell-main__text"><div class="pb-cell-main__title">Safari · iPhone</div><div class="pb-cell-main__meta">iOS 19</div></div></td>
+                  <td>กรุงเทพฯ, ไทย</td><td class="pb-nowrap">เมื่อวาน 21:14</td>
+                  <td class="pb-right"><button class="pb-btn pb-btn--ghost pb-btn--sm" data-stub="ยังไม่เปิดในรุ่นเบต้า">ออกจากระบบ</button></td>
+                </tr>
+                <tr>
+                  <td><div class="pb-cell-main__text"><div class="pb-cell-main__title">Edge · Windows 10</div><div class="pb-cell-main__meta">เครื่องที่คลัง WH-02</div></div></td>
+                  <td>กรุงเทพฯ, ไทย</td><td class="pb-nowrap">18 ส.ค. 2569</td>
+                  <td class="pb-right"><button class="pb-btn pb-btn--ghost pb-btn--sm" data-stub="ยังไม่เปิดในรุ่นเบต้า">ออกจากระบบ</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/assets/js/main.js"></script>
+</body>
+</html>

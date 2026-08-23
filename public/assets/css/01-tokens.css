@@ -1,0 +1,169 @@
+/* ==========================================================================
+   PenbunWeb — 01-tokens.css
+   Design tokens. The only file allowed to define raw colour values.
+   Brand palette (fixed by spec):
+     Orange  rgb(249 115 22)  #F97316   primary action / brand
+     Ink     rgb(17 24 39)    #111827   dark surface
+     Void    rgb(6 7 18)      #060712   dark canvas
+     Paper   rgb(248 250 252) #F8FAFC   light canvas
+     Green   rgb(22 163 74)   #16A34A   positive / in stock / posted
+     Red     rgb(255 30 30)   #FF1E1E   negative / oversell / voided
+   ========================================================================== */
+
+:root {
+  /* --- Brand constants (theme independent) --- */
+  --pb-orange: #f97316;
+  --pb-orange-600: #ea6a0c;
+  --pb-orange-700: #c2540a;
+  --pb-orange-100: #ffedd5;
+  --pb-ink: #111827;
+  --pb-void: #060712;
+  --pb-paper: #f8fafc;
+  --pb-green: #16a34a;
+  --pb-red: #ff1e1e;
+
+  /* --- Type --- */
+  --pb-font-ui: "Inter", "IBM Plex Sans Thai", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", "Noto Sans Thai", sans-serif;
+  --pb-font-num: "Inter", "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --pb-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --pb-fs-2xs: 0.6875rem; /* 11px — eyebrow / table meta */
+  --pb-fs-xs: 0.75rem;    /* 12px — labels, badges */
+  --pb-fs-sm: 0.8125rem;  /* 13px — table body, sidebar */
+  --pb-fs-base: 0.875rem; /* 14px — app default */
+  --pb-fs-md: 1rem;
+  --pb-fs-lg: 1.125rem;
+  --pb-fs-xl: 1.375rem;
+  --pb-fs-2xl: 1.75rem;
+  --pb-fs-3xl: 2.25rem;   /* figures */
+  --pb-fs-hero: 3rem;
+
+  --pb-lh-tight: 1.15;
+  --pb-lh-snug: 1.35;
+  --pb-lh-base: 1.6;
+
+  /* --- Space (4pt grid) --- */
+  --pb-1: 0.25rem;
+  --pb-2: 0.5rem;
+  --pb-3: 0.75rem;
+  --pb-4: 1rem;
+  --pb-5: 1.25rem;
+  --pb-6: 1.5rem;
+  --pb-8: 2rem;
+  --pb-10: 2.5rem;
+  --pb-12: 3rem;
+
+  /* --- Radius --- */
+  --pb-r-xs: 4px;
+  --pb-r-sm: 6px;
+  --pb-r-md: 10px;
+  --pb-r-lg: 14px;
+  --pb-r-pill: 999px;
+
+  /* --- Layout --- */
+  --pb-sidebar-w: 264px;
+  --pb-sidebar-w-collapsed: 72px;
+  --pb-topbar-h: 60px;
+  --pb-content-max: 1440px;
+
+  /* --- Motion --- */
+  --pb-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pb-dur-fast: 120ms;
+  --pb-dur: 200ms;
+  --pb-dur-slow: 320ms;
+
+  --pb-z-sidebar: 40;
+  --pb-z-topbar: 30;
+  --pb-z-overlay: 50;
+  --pb-z-toast: 60;
+}
+
+/* ==========================================================================
+   Theme: light (default)
+   ========================================================================== */
+:root,
+[data-bs-theme="light"],
+html.light {
+  color-scheme: light;
+
+  --pb-canvas: var(--pb-paper);
+  --pb-surface: #ffffff;
+  --pb-surface-2: #f1f5f9;
+  --pb-surface-3: #e8edf3;
+  --pb-sidebar-bg: #ffffff;
+  --pb-topbar-bg: rgba(255, 255, 255, 0.82);
+
+  --pb-text: #111827;
+  --pb-text-2: #475569;
+  --pb-text-3: #94a3b8;
+  --pb-text-on-brand: #ffffff;
+
+  --pb-border: #e2e8f0;
+  --pb-border-strong: #cbd5e1;
+  --pb-divider: #eef2f7;
+
+  --pb-brand: var(--pb-orange);
+  --pb-brand-hover: var(--pb-orange-600);
+  --pb-brand-soft: rgba(249, 115, 22, 0.1);
+  --pb-brand-soft-2: rgba(249, 115, 22, 0.18);
+
+  --pb-pos: var(--pb-green);
+  --pb-pos-soft: rgba(22, 163, 74, 0.12);
+  --pb-neg: #e11414;
+  --pb-neg-soft: rgba(255, 30, 30, 0.12);
+  --pb-warn: #b45309;
+  --pb-warn-soft: rgba(249, 115, 22, 0.14);
+  --pb-info: #334155;
+  --pb-info-soft: rgba(51, 65, 85, 0.1);
+
+  --pb-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --pb-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px -12px rgba(15, 23, 42, 0.18);
+  --pb-shadow-lg: 0 12px 40px -12px rgba(15, 23, 42, 0.28);
+  --pb-ring: 0 0 0 3px rgba(249, 115, 22, 0.32);
+  --pb-grid-line: rgba(148, 163, 184, 0.22);
+}
+
+/* ==========================================================================
+   Theme: dark
+   ========================================================================== */
+[data-bs-theme="dark"],
+html.dark {
+  color-scheme: dark;
+
+  --pb-canvas: var(--pb-void);
+  --pb-surface: var(--pb-ink);
+  --pb-surface-2: #182234;
+  --pb-surface-3: #1f2b40;
+  --pb-sidebar-bg: #0b101c;
+  --pb-topbar-bg: rgba(11, 16, 28, 0.82);
+
+  --pb-text: #e8ecf3;
+  --pb-text-2: #9aa7bd;
+  --pb-text-3: #64748b;
+  --pb-text-on-brand: #0b101c;
+
+  --pb-border: rgba(148, 163, 184, 0.16);
+  --pb-border-strong: rgba(148, 163, 184, 0.3);
+  --pb-divider: rgba(148, 163, 184, 0.1);
+
+  --pb-brand: var(--pb-orange);
+  --pb-brand-hover: #fb8a3c;
+  --pb-brand-soft: rgba(249, 115, 22, 0.16);
+  --pb-brand-soft-2: rgba(249, 115, 22, 0.26);
+
+  --pb-pos: #22c55e;
+  --pb-pos-soft: rgba(22, 163, 74, 0.2);
+  --pb-neg: #ff4a4a;
+  --pb-neg-soft: rgba(255, 30, 30, 0.18);
+  --pb-warn: #fbbf24;
+  --pb-warn-soft: rgba(251, 191, 36, 0.16);
+  --pb-info: #94a3b8;
+  --pb-info-soft: rgba(148, 163, 184, 0.14);
+
+  --pb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --pb-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 12px 32px -14px rgba(0, 0, 0, 0.7);
+  --pb-shadow-lg: 0 18px 50px -16px rgba(0, 0, 0, 0.8);
+  --pb-ring: 0 0 0 3px rgba(249, 115, 22, 0.4);
+  --pb-grid-line: rgba(148, 163, 184, 0.14);
+}

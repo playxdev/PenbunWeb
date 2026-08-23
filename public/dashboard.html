@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>แดชบอร์ด · PenbunWeb</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23f97316'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/css/01-tokens.css">
+<link rel="stylesheet" href="/assets/css/02-base.css">
+<link rel="stylesheet" href="/assets/css/03-layout.css">
+<link rel="stylesheet" href="/assets/css/04-components.css">
+<link rel="stylesheet" href="/assets/css/05-pages.css">
+<script>
+(function () {
+  try {
+    var c = localStorage.getItem("penbun.theme") || "auto";
+    var dark = c === "dark" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    var r = document.documentElement;
+    r.classList.add(dark ? "dark" : "light");
+    r.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    r.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="pb-skip-link" href="#pb-page">ข้ามไปยังเนื้อหาหลัก</a>
+
+<div id="pb-page" data-page="dashboard">
+
+  <div class="pb-pagehead">
+    <div class="pb-pagehead__titles">
+      <div class="pb-eyebrow">ภาพรวมประจำวัน</div>
+      <h1>แดชบอร์ด</h1>
+      <p class="pb-pagehead__sub">ข้อมูล ณ วันอาทิตย์ที่ 23 สิงหาคม 2569 · ศูนย์กระจายสินค้า (DC-01)</p>
+    </div>
+    <div class="pb-pagehead__actions">
+      <div class="pb-segment" role="group" aria-label="ช่วงเวลา">
+        <button type="button" data-value="7" aria-pressed="false">7 วัน</button>
+        <button type="button" data-value="30" aria-pressed="true">30 วัน</button>
+        <button type="button" data-value="90" aria-pressed="false">ไตรมาส</button>
+      </div>
+      <button class="pb-btn pb-btn--secondary" data-stub="การส่งออกรายงานจะมาในรุ่นถัดไป">ส่งออก</button>
+      <button class="pb-btn pb-btn--primary" data-stub="ฟอร์มสร้างเอกสารยังไม่เปิดในเบต้า">สร้างใบสั่งขาย</button>
+    </div>
+  </div>
+
+  <div class="pb-grid">
+
+    <!-- KPI strip -->
+    <div class="pb-col-3">
+      <div class="pb-card"><div class="pb-card__body">
+        <div class="pb-stat">
+          <div class="pb-stat__head">
+            <span class="pb-stat__label">ยอดขายเดือนนี้</span>
+            <span class="pb-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l4-5 3 3 4-6"/></svg></span>
+          </div>
+          <div class="pb-stat__value" id="kpi-sales">—</div>
+          <div class="pb-stat__foot" id="kpi-sales-delta"></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="pb-col-3">
+      <div class="pb-card"><div class="pb-card__body">
+        <div class="pb-stat">
+          <div class="pb-stat__head">
+            <span class="pb-stat__label">ใบสั่งขายเดือนนี้</span>
+            <span class="pb-stat__icon pb-stat__icon--info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></span>
+          </div>
+          <div class="pb-stat__value" id="kpi-orders">—<span class="pb-stat__unit">ใบ</span></div>
+          <div class="pb-stat__foot" id="kpi-orders-delta"></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="pb-col-3">
+      <div class="pb-card"><div class="pb-card__body">
+        <div class="pb-stat">
+          <div class="pb-stat__head">
+            <span class="pb-stat__label">สต็อกคงเหลือรวม</span>
+            <span class="pb-stat__icon pb-stat__icon--neg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 12 4l9 4.5-9 4.5z"/><path d="M3 8.5v7L12 20l9-4.5v-7"/></svg></span>
+          </div>
+          <div class="pb-stat__value" id="kpi-stock">—<span class="pb-stat__unit">ชิ้น</span></div>
+          <div class="pb-stat__foot" id="kpi-stock-delta"></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="pb-col-3">
+      <div class="pb-card"><div class="pb-card__body">
+        <div class="pb-stat">
+          <div class="pb-stat__head">
+            <span class="pb-stat__label">มูลค่าฝากขายคงค้าง</span>
+            <span class="pb-stat__icon pb-stat__icon--pos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg></span>
+          </div>
+          <div class="pb-stat__value" id="kpi-consign">—</div>
+          <div class="pb-stat__foot" id="kpi-consign-delta"></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- Signature: route rail -->
+    <div class="pb-col-12">
+      <div class="pb-card">
+        <div class="pb-card__head">
+          <div>
+            <div class="pb-card__title">สายจัดส่งวันนี้</div>
+            <div class="pb-card__sub">แต่ละแถวคือหนึ่งสาย · จุดทึบคือส่งแล้ว · แถบส้มคือสัดส่วนที่จัดของขึ้นรถแล้ว</div>
+          </div>
+          <div class="pb-card__head-actions">
+            <span class="pb-legend">
+              <span class="pb-legend__item"><span class="pb-legend__swatch"></span>จัดของแล้ว</span>
+              <span class="pb-legend__item"><span class="pb-legend__swatch pb-legend__swatch--muted"></span>รอจัด</span>
+            </span>
+            <a class="pb-btn pb-btn--ghost pb-btn--sm" href="/routes.html">จัดการสาย</a>
+          </div>
+        </div>
+        <div class="pb-card__body pb-card__body--flush">
+          <div class="pb-rail" id="pb-rail"></div>
+        </div>
+        <div class="pb-card__foot">
+          <span>รวม 5 สาย · 27 จุดส่ง</span>
+          <span class="pb-badge pb-badge--neg" style="margin-inline-start:auto">ล่าช้า 1 จุด</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales trend -->
+    <div class="pb-col-8">
+      <div class="pb-card">
+        <div class="pb-card__head">
+          <div>
+            <div class="pb-card__title">แนวโน้มยอดขาย</div>
+            <div class="pb-card__sub">เทียบกับเดือนก่อนหน้า หน่วยเป็นบาท</div>
+          </div>
+          <div class="pb-card__head-actions">
+            <span class="pb-legend">
+              <span class="pb-legend__item"><span class="pb-legend__swatch"></span>เดือนนี้</span>
+              <span class="pb-legend__item"><span class="pb-legend__swatch pb-legend__swatch--muted"></span>เดือนก่อน</span>
+            </span>
+          </div>
+        </div>
+        <div class="pb-card__body">
+          <div id="pb-chart-sales"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock mix -->
+    <div class="pb-col-4">
+      <div class="pb-card" style="height:100%">
+        <div class="pb-card__head">
+          <div>
+            <div class="pb-card__title">สัดส่วนสต็อก</div>
+            <div class="pb-card__sub">แยกตามหมวดสินค้า</div>
+          </div>
+        </div>
+        <div class="pb-card__body">
+          <div class="pb-donut">
+            <div id="pb-donut-stock"></div>
+            <div class="pb-donut__list" id="pb-donut-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent documents -->
+    <div class="pb-col-8">
+      <div class="pb-card">
+        <div class="pb-card__head">
+          <div>
+            <div class="pb-card__title">เอกสารล่าสุด</div>
+            <div class="pb-card__sub">ใบรับสินค้า ใบสั่งขาย ใบคืน ในรอบ 48 ชั่วโมง</div>
+          </div>
+          <div class="pb-card__head-actions">
+            <a class="pb-btn pb-btn--ghost pb-btn--sm" href="/doc-order.html">ดูทั้งหมด</a>
+          </div>
+        </div>
+        <div class="pb-card__body pb-card__body--flush">
+          <div class="pb-tablewrap">
+            <table class="pb-table" id="pb-docs">
+              <thead>
+                <tr>
+                  <th data-sort>เลขที่เอกสาร</th>
+                  <th data-sort>คู่ค้า</th>
+                  <th>สาย</th>
+                  <th data-sort>เวลา</th>
+                  <th data-sort data-num>มูลค่า</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="pb-docs-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="pb-col-4">
+      <div class="pb-card" style="height:100%">
+        <div class="pb-card__head">
+          <div class="pb-card__title">ความเคลื่อนไหววันนี้</div>
+        </div>
+        <div class="pb-card__body">
+          <div class="pb-timeline" id="pb-activity"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top products -->
+    <div class="pb-col-6">
+      <div class="pb-card" style="height:100%">
+        <div class="pb-card__head">
+          <div>
+            <div class="pb-card__title">สินค้าขายดี</div>
+            <div class="pb-card__sub">จำนวนชิ้นที่ออกจากคลังในเดือนนี้</div>
+          </div>
+        </div>
+        <div class="pb-card__body">
+          <div class="pb-barlist" id="pb-topproducts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Low stock -->
+    <div class="pb-col-6">
+      <div class="pb-card" style="height:100%">
+        <div class="pb-card__head">
+          <div>
+            <div class="pb-card__title">ต่ำกว่าจุดสั่งซื้อ</div>
+            <div class="pb-card__sub">เทียบยอดคงเหลือกับจุดสั่งซื้อของแต่ละรายการ</div>
+          </div>
+          <div class="pb-card__head-actions">
+            <a class="pb-btn pb-btn--ghost pb-btn--sm" href="/stock.html">เปิดหน้าสต็อก</a>
+          </div>
+        </div>
+        <div class="pb-card__body">
+          <div class="pb-barlist" id="pb-lowstock"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module" src="/assets/js/main.js"></script>
+</body>
+</html>
