@@ -178,6 +178,16 @@ function topbarMarkup(active: string): string {
   </header>`;
 }
 
+function footerMarkup(): string {
+  return `
+  <footer class="pb-footer">
+    <div class="pb-footer__inner">
+      <span>© 2569 Penbun System</span>
+      <span class="pb-footer__version">PenbunWeb beta 1.0.0</span>
+    </div>
+  </footer>`;
+}
+
 export function mountShell(user: Session): void {
   const page = document.getElementById("pb-page");
   if (!page) throw new Error("shell: #pb-page not found");
@@ -189,7 +199,7 @@ export function mountShell(user: Session): void {
   shell.dataset.sidebar = localStorage.getItem(SIDEBAR_KEY) === "collapsed" ? "collapsed" : "expanded";
   shell.innerHTML = `${sidebarMarkup(active, user)}<div class="pb-main">${topbarMarkup(
     active
-  )}<main class="pb-content" id="pb-main"></main></div>`;
+  )}<main class="pb-content" id="pb-main"></main>${footerMarkup()}</div>`;
 
   const scrim = document.createElement("div");
   scrim.className = "pb-scrim";

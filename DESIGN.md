@@ -85,6 +85,7 @@ Scale: `11 · 12 · 13 · 14 · 16 · 18 · 22 · 28 · 36 · 48` px
 - เงา: ใช้บาง ๆ เพื่อบอกชั้น ไม่ใช่เพื่อความสวย โหมดมืดใช้ขอบเรืองแทนเงา
 - โครงหน้าปกติ: `pagehead → KPI → เนื้อหาหลัก → ตาราง → ข้อมูลประกอบ`
 - Sidebar 264px ย่อเหลือ 72px ได้ (จำค่าไว้) ต่ำกว่า 992px กลายเป็น drawer
+- Footer ติดขอบล่าง ความสูงเท่ากับการ์ดผู้ใช้ใน sidebar ผ่าน token เดียว `--pb-bar-h: 64px`
 
 ---
 
@@ -93,7 +94,7 @@ Scale: `11 · 12 · 13 · 14 · 16 · 18 · 22 · 28 · 36 · 48` px
 ปุ่ม (primary/secondary/ghost/danger/success + sm/lg/block) · icon button · การ์ด (head/body/foot) ·
 KPI stat + delta chip · badge 5 สถานะ · avatar & user chip · dropdown · toast · modal · tabs ·
 segmented control · switch · checkbox · input/select/textarea + input group · toolbar ·
-ตารางเรียงได้ + แบ่งหน้า · meter · timeline · alert · empty state · skeleton · kbd ·
+footer bar (แถบด้านล่าง) · ตารางเรียงได้ + แบ่งหน้า · meter · timeline · alert · empty state · skeleton · kbd ·
 กราฟ area / donut / sparkline / bar list (SVG เขียนเอง ไม่ใช้ไลบรารี)
 
 ทุกตัวเป็น class เดี่ยว prefix `pb-` และไม่มี CSS ไฟล์ไหนประกาศสีเป็น hex นอกจาก `01-tokens.css`

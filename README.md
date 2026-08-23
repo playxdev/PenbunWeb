@@ -46,6 +46,7 @@ penbunweb/
 │  ├─ vendors.html · customers.html · discounts.html
 │  ├─ users.html · settings.html · profile.html · reports.html
 │  ├─ 401.html · 403.html · 404.html · 500.html · 502.html · 503.html
+│  ├─ _headers                 ← security headers + cache (Cloudflare Pages)
 │  └─ assets/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
 │     └─ js/   (ผลลัพธ์จาก tsc — ไม่ commit)
@@ -56,6 +57,8 @@ penbunweb/
 │  ├─ main.ts        ← entry ของหน้าที่อยู่ใน shell
 │  └─ standalone.ts  ← entry ของหน้า login / error
 ├─ tools/  gen_pages.py · serve.mjs
+├─ wrangler.toml   ← config Cloudflare Pages (output dir = public)
+├─ .nvmrc          ← pin Node 20 สำหรับ build บน Cloudflare
 ├─ DESIGN.md   ← concept การออกแบบ + prompt สำหรับสร้างหน้าจอเพิ่ม
 └─ tsconfig.json · package.json
 ```
@@ -63,7 +66,7 @@ penbunweb/
 ### หลักการสำคัญ: เมนูมีที่เดียว
 
 หน้าเว็บแต่ละไฟล์เก็บ **เฉพาะเนื้อหาของตัวเอง** ใน `<div id="pb-page" data-page="...">`
-`shell.ts` เป็นคนประกอบ sidebar + topbar ครอบให้ตอน runtime โดยอ่านเมนูจาก `src/ts/nav.ts`
+`shell.ts` เป็นคนประกอบ sidebar + topbar + footer ครอบให้ตอน runtime โดยอ่านเมนูจาก `src/ts/nav.ts`
 → เพิ่ม/แก้เมนู แก้ที่ `nav.ts` ไฟล์เดียว ไม่ต้องไล่แก้ทุกหน้า
 
 ---

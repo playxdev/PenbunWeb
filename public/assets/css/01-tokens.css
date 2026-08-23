@@ -65,6 +65,7 @@
   --pb-sidebar-w: 264px;
   --pb-sidebar-w-collapsed: 72px;
   --pb-topbar-h: 60px;
+  --pb-bar-h: 64px; /* shared height: sidebar user card + page footer */
   --pb-content-max: 1440px;
 
   /* --- Motion --- */
