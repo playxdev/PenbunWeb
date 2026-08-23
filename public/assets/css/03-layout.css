@@ -238,8 +238,7 @@
 .pb-content {
   flex: 1 1 auto;
   width: 100%;
-  max-width: var(--pb-content-max);
-  margin: 0; /* left-aligned — sits 24px from the sidebar instead of auto-centering */
+  margin: 0;
   padding: var(--pb-6) var(--pb-6) var(--pb-10);
 }
 
@@ -259,7 +258,6 @@
   gap: var(--pb-2);
   flex-wrap: wrap;
   width: 100%;
-  max-width: var(--pb-content-max);
   margin: 0 auto;
   padding: var(--pb-2) var(--pb-6);
   font-size: var(--pb-fs-xs);
