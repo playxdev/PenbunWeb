@@ -6,7 +6,7 @@
  * shell at runtime, so the menu exists in exactly one place (nav.ts).
  */
 
-import { NAV, NAV_INDEX, groupOf } from "./nav.js";
+import { NAV, NAV_INDEX } from "./nav.js";
 import { icon } from "./icons.js";
 import { esc, timeAgo } from "./format.js";
 import { signOut, type Session } from "./auth.js";
@@ -55,7 +55,7 @@ function themeIcon(): string {
   return c === "auto" ? icon("monitor") : resolve(c) === "dark" ? icon("moon") : icon("sun");
 }
 
-function sidebarMarkup(active: string, user: Session): string {
+function sidebarMarkup(active: string): string {
   return `
   <aside class="pb-sidebar" id="pb-sidebar">
     <a class="pb-brand" href="/dashboard.html">
@@ -67,50 +67,28 @@ function sidebarMarkup(active: string, user: Session): string {
     </a>
     <nav class="pb-nav" aria-label="เมนูหลัก">${navMarkup(active)}</nav>
     <div class="pb-sidebar__foot">
-      <div class="pb-dropdown">
-        <button class="pb-userchip" data-dropdown-trigger aria-expanded="false" aria-haspopup="menu">
-          <span class="pb-avatar pb-avatar--brand">${esc(user.initials)}</span>
-          <span class="pb-userchip__text">
-            <span class="pb-userchip__name">${esc(user.name)}</span>
-            <span class="pb-userchip__role">${esc(user.role)}</span>
-          </span>
-        </button>
-        <div class="pb-dropdown__menu pb-dropdown__menu--up pb-dropdown__menu--start" role="menu">
-          <div class="pb-dropdown__head">
-            <span class="pb-avatar pb-avatar--sm pb-avatar--brand">${esc(user.initials)}</span>
-            <span>
-              <span class="pb-dropdown__title">${esc(user.username)}</span>
-              <div class="pb-userchip__role">${esc(user.branch)}</div>
-            </span>
-          </div>
-          <div class="pb-dropdown__sep"></div>
-          <a class="pb-dropdown__item" href="/profile.html" role="menuitem">${icon("user")}โปรไฟล์ของฉัน</a>
-          <a class="pb-dropdown__item" href="/settings.html" role="menuitem">${icon("settings")}ตั้งค่าระบบ</a>
-          <a class="pb-dropdown__item" href="/403.html" role="menuitem">${icon("shield")}สิทธิ์การใช้งาน</a>
-          <div class="pb-dropdown__sep"></div>
-          <button class="pb-dropdown__item pb-dropdown__item--danger" data-signout role="menuitem">${icon(
-            "logout"
-          )}ออกจากระบบ</button>
-        </div>
-      </div>
+      <button class="pb-collapsebtn" data-sidebar-collapse aria-expanded="false" aria-controls="pb-sidebar">
+        ${icon("panel")}
+        <span class="pb-collapsebtn__text">ย่อเมนู</span>
+      </button>
     </div>
   </aside>`;
 }
 
-function topbarMarkup(active: string): string {
-  const item = NAV_INDEX[active];
-  const group = groupOf(active);
+function topbarMarkup(user: Session): string {
   return `
   <header class="pb-topbar">
-    <button class="pb-iconbtn" data-sidebar-toggle aria-label="ย่อ/ขยายเมนู" aria-controls="pb-sidebar" aria-expanded="false">${icon(
-      "panel"
+    <button class="pb-iconbtn" data-sidebar-toggle aria-label="เปิดเมนู" aria-controls="pb-sidebar" aria-expanded="false">${icon(
+      "menu"
     )}</button>
 
-    <div class="pb-breadcrumb" aria-label="ตำแหน่งปัจจุบัน">
-      <a href="/dashboard.html">Penbun</a>
-      ${group ? `<span class="pb-breadcrumb__sep">/</span><span>${esc(group)}</span>` : ""}
-      ${item ? `<span class="pb-breadcrumb__sep">/</span><span>${esc(item.label)}</span>` : ""}
-    </div>
+    <nav class="pb-topnav" aria-label="เมนูแนวนอน">
+      <a class="pb-topnav__item" href="/dashboard.html">${icon("home")}<span>หน้าแรก</span></a>
+      <a class="pb-topnav__item" href="#" data-stub="แอปพลิเคชัน">${icon("apps")}<span>แอป</span></a>
+      <a class="pb-topnav__item" href="#" data-stub="หน้า">${icon("file")}<span>หน้า</span></a>
+      <a class="pb-topnav__item" href="#" data-stub="โมดูล">${icon("boxes")}<span>โมดูล</span></a>
+      <a class="pb-topnav__item" href="#" data-stub="คู่มือการใช้งาน">${icon("book")}<span>คู่มือ</span></a>
+    </nav>
 
     <div class="pb-topbar__spacer"></div>
 
@@ -157,18 +135,24 @@ function topbarMarkup(active: string): string {
         style="width:auto;padding:0 4px">
         <span class="pb-avatar pb-avatar--sm pb-avatar--brand" id="pb-topbar-avatar"></span>
       </button>
-      <div class="pb-dropdown__menu" role="menu">
-        <a class="pb-dropdown__item" href="/profile.html" role="menuitem">${icon("user")}โปรไฟล์</a>
-        <a class="pb-dropdown__item" href="/settings.html" role="menuitem">${icon("settings")}ตั้งค่า</a>
-        <div class="pb-dropdown__sep"></div>
-        <div style="padding:var(--pb-2) var(--pb-3)">
-          <div class="pb-label" style="margin-bottom:6px">ธีม</div>
-          <div class="pb-segment" role="group" aria-label="เลือกธีม">
-            <button type="button" data-theme-value="light" aria-pressed="false">สว่าง</button>
-            <button type="button" data-theme-value="dark" aria-pressed="false">มืด</button>
-            <button type="button" data-theme-value="auto" aria-pressed="false">อัตโนมัติ</button>
-          </div>
+      <div class="pb-dropdown__menu pb-dropdown__menu--user" role="menu">
+        <div class="pb-dropdown__head">
+          <span class="pb-avatar pb-avatar--brand">${esc(user.initials)}</span>
+          <span style="min-width:0">
+            <span class="pb-dropdown__title">${esc(user.name)}</span>
+            <div class="pb-userchip__role">${esc(user.role)}</div>
+          </span>
         </div>
+        <div class="pb-dropdown__status">
+          <label class="pb-label" for="pb-status-input">อัปเดตสถานะของคุณ</label>
+          <input class="pb-input" id="pb-status-input" type="text" placeholder="คุณกำลังทำอะไรอยู่?">
+        </div>
+        <div class="pb-dropdown__sep"></div>
+        <a class="pb-dropdown__item" href="/profile.html" role="menuitem">${icon("user")}โปรไฟล์ของฉัน</a>
+        <a class="pb-dropdown__item" href="/dashboard.html" role="menuitem">${icon("dashboard")}แดชบอร์ด</a>
+        <a class="pb-dropdown__item" href="#" data-stub="โพสต์และกิจกรรม" role="menuitem">${icon("history")}โพสต์และกิจกรรม</a>
+        <a class="pb-dropdown__item" href="/settings.html" role="menuitem">${icon("settings")}ตั้งค่าและความเป็นส่วนตัว</a>
+        <a class="pb-dropdown__item" href="#" data-stub="ศูนย์ช่วยเหลือ" role="menuitem">${icon("help")}ศูนย์ช่วยเหลือ</a>
         <div class="pb-dropdown__sep"></div>
         <button class="pb-dropdown__item pb-dropdown__item--danger" data-signout role="menuitem">${icon(
           "logout"
@@ -197,8 +181,8 @@ export function mountShell(user: Session): void {
   shell.className = "pb-shell";
   shell.id = "pb-shell";
   shell.dataset.sidebar = localStorage.getItem(SIDEBAR_KEY) === "collapsed" ? "collapsed" : "expanded";
-  shell.innerHTML = `${sidebarMarkup(active, user)}<div class="pb-main">${topbarMarkup(
-    active
+  shell.innerHTML = `${sidebarMarkup(active)}<div class="pb-main">${topbarMarkup(
+    user
   )}<main class="pb-content" id="pb-main"></main>${footerMarkup()}</div>`;
 
   const scrim = document.createElement("div");
@@ -219,17 +203,25 @@ export function mountShell(user: Session): void {
 function wire(shell: HTMLElement, scrim: HTMLElement): void {
   const mq = window.matchMedia("(max-width: 992px)");
   const toggle = shell.querySelector<HTMLElement>("[data-sidebar-toggle]");
+  const collapse = shell.querySelector<HTMLElement>("[data-sidebar-collapse]");
+
+  const setCollapsed = (collapsed: boolean): void => {
+    shell.dataset.sidebar = collapsed ? "collapsed" : "expanded";
+    localStorage.setItem(SIDEBAR_KEY, shell.dataset.sidebar);
+    collapse?.setAttribute("aria-expanded", String(collapsed));
+  };
+  setCollapsed(shell.dataset.sidebar === "collapsed");
 
   const closeDrawer = (): void => {
-    if (shell.dataset.sidebar !== "open") return;
-    shell.dataset.sidebar = "expanded";
+    if (shell.dataset.drawer !== "open") return;
+    delete shell.dataset.drawer;
     scrim.classList.remove("is-open");
     document.body.style.overflow = "";
     toggle?.setAttribute("aria-expanded", "false");
   };
 
   const openDrawer = (): void => {
-    shell.dataset.sidebar = "open";
+    shell.dataset.drawer = "open";
     scrim.classList.add("is-open");
     document.body.style.overflow = "hidden";
     toggle?.setAttribute("aria-expanded", "true");
@@ -237,14 +229,14 @@ function wire(shell: HTMLElement, scrim: HTMLElement): void {
 
   toggle?.addEventListener("click", () => {
     if (mq.matches) {
-      if (shell.dataset.sidebar === "open") closeDrawer();
+      if (shell.dataset.drawer === "open") closeDrawer();
       else openDrawer();
       return;
     }
-    const collapsed = shell.dataset.sidebar === "collapsed";
-    shell.dataset.sidebar = collapsed ? "expanded" : "collapsed";
-    localStorage.setItem(SIDEBAR_KEY, shell.dataset.sidebar);
+    setCollapsed(shell.dataset.sidebar !== "collapsed");
   });
+
+  collapse?.addEventListener("click", () => setCollapsed(shell.dataset.sidebar !== "collapsed"));
 
   scrim.addEventListener("click", closeDrawer);
 

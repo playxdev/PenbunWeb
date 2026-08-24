@@ -264,6 +264,7 @@
 .pb-dropdown__menu--up { top: auto; bottom: calc(100% + 8px); }
 .pb-dropdown__menu--start { inset-inline-end: auto; inset-inline-start: 0; }
 .pb-dropdown__menu--wide { min-width: 320px; }
+.pb-dropdown__menu--user { min-width: 300px; }
 
 .pb-dropdown__item {
   display: flex;
@@ -291,6 +292,7 @@
   gap: var(--pb-2);
 }
 .pb-dropdown__title { font-size: var(--pb-fs-sm); font-weight: 650; }
+.pb-dropdown__status { display: flex; flex-direction: column; gap: var(--pb-2); padding: var(--pb-2) var(--pb-3); }
 
 /* ----------------------------------------------------------------- forms */
 .pb-field { display: flex; flex-direction: column; gap: var(--pb-2); }

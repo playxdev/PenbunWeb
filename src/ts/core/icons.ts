@@ -56,6 +56,9 @@ const P: Record<string, string> = {
   wallet: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14.5" r="1.2"/>',
   history: '<path d="M4 11a8 8 0 1 1 2.5 6"/><path d="M4 5v5h5"/><path d="M12 8v4.5l3 1.8"/>',
   swap: '<path d="M7 7h11l-3-3"/><path d="M17 17H6l3 3"/>',
+  home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/>',
+  apps: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.4 9a2.6 2.6 0 0 1 5.2.4c0 1.7-2.6 2.3-2.6 3.8"/><path d="M12 17v.2"/>',
 };
 
 export type IconName = keyof typeof P | string;
