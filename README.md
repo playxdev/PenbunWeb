@@ -80,11 +80,13 @@ penbunweb/
 │  └─ assets/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
 │     └─ js/   (tsc output — not committed)
-├─ src/ts/
-│  ├─ core/    config · tokens · api · auth · theme · nav · ui · charts · icons · format
-│  ├─ master/  schema · resources · repo · view · form · page · hub   ← the master engine
-│  ├─ data/    mock.ts          ← sample data for the screens not yet wired
-│  ├─ pages/   dashboard.ts
+├─ src/ts/                     ← 40 pages in public/, all fed from here
+│  ├─ core/       config · tokens · api · auth · theme · nav · ui · charts · icons · format
+│  ├─ master/     schema · resources · repo · view · form · page · hub   ← the master engine
+│  ├─ components/ brand · sidebar · nav-menu · topbar · theme-toggle · footer
+│  ├─ layouts/    app-layout.ts   ← wraps every page's content in the shell
+│  ├─ data/       mock.ts         ← sample data for the screens not yet wired
+│  ├─ pages/      dashboard.ts
 │  ├─ main.ts        ← entry point for shell pages
 │  └─ standalone.ts  ← entry point for login/error pages
 ├─ tools/  gen_pages.py · gen_master_pages.mjs · serve.mjs · test.mjs
@@ -97,8 +99,12 @@ penbunweb/
 ### Important Principle: The Menu Has One Source of Truth
 
 Each page file contains only its own content inside `<div id="pb-page" data-page="...">`.
-At runtime, `shell.ts` wraps it with the sidebar, topbar, and footer using the menu from `src/ts/nav.ts`.
-To add or edit a menu item, change `nav.ts` once instead of updating every page.
+At runtime, `src/ts/layouts/app-layout.ts` wraps it with the sidebar, topbar, and footer using the menu
+from `src/ts/core/nav.ts`. To add or edit a menu item, change `nav.ts` once instead of updating every page.
+
+Pages reachable only from the master hub live in `HUB_ITEMS` rather than `NAV`, so they stay out of the
+sidebar but still resolve a title and a highlighted parent. Both lists feed `NAV_INDEX`, which is what
+`tools/test.mjs` checks every page id against.
 
 ---
 

@@ -1,8 +1,9 @@
 # PenbunWeb — Design Concept & Prompt
 
-This document has two parts:
-**Sections 1–9** describe the design concept used by beta 1.1.0.
-**Section 10** is a ready-to-use prompt for generating new screens in the same system.
+This document has three parts:
+**Sections 1–9** describe the design concept, current as of beta 1.3.0.
+**Section 10** covers the master-data screens, which are declared rather than designed one by one.
+**Section 11** is a ready-to-use prompt for generating new screens in the same system.
 
 ---
 
@@ -94,6 +95,11 @@ badges, avatars, dropdowns, toasts, modals, tabs, segmented controls, switches, 
 toolbars, footer bars, top navigation, collapse toggles, sortable/paginated tables, meters, timelines, alerts, empty states,
 skeletons, and keyboard hints.
 
+Master-data screens add: filter selects (`pb-filter`), a two-column form grid (`pb-formgrid`) with a
+wide-field modifier, a large modal panel (`pb-modal__panel--lg`), hover-revealed row action buttons
+(`pb-rowacts`), a danger icon button, monospace code cells (`pb-mono`), sortable header buttons
+(`pb-th-sort`), and the hub card grid (`pb-mastergrid`). See section 10.
+
 Charts are hand-written SVG: area, donut, sparkline, and bar-list charts.
 Every component uses a `pb-` class prefix. Only `01-tokens.css` may declare hex colors.
 
@@ -107,6 +113,9 @@ Every component uses a `pb-` class prefix. Only `01-tokens.css` may declare hex 
 | Pending review | `pb-badge--warn` | Orange/amber |
 | Posted | `pb-badge--pos` | Green |
 | Cancelled | `pb-badge--neg` | Red |
+
+Master rows are exactly **ใช้งาน / พักการใช้งาน**. Deleted rows are not a third state — they are not shown.
+Never surface the database's soft-delete flag as a status the user can see or set.
 
 Stock states are exactly **Normal / Low / Critical**. Do not mix in terms such as “empty” or “small”.
 
@@ -135,9 +144,85 @@ Buttons and results use the same vocabulary: clicking **Post** should produce **
 
 ---
 
-## 10. Design Prompt
+## 10. Master-Data Screens Are Declared, Not Designed
 
-### 10.1 Master Prompt — New PenbunWeb Screens
+Eighteen screens in this product are the same screen: a filtered, sorted, paginated table over one
+table in the database, with a dialog to add or edit a row. Designing each one separately would produce
+eighteen slightly different tables — different empty states, different column alignment, different
+places to put the delete button. So they share one implementation and one visual contract, and a new
+one is added by writing a descriptor in `src/ts/master/resources.ts`.
+
+This mirrors PenbunAPI, where the same eighteen resources are Go descriptors rather than handlers.
+The two vocabularies are deliberately name-for-name: `schema.Field` ↔ `Field`, `schema.Ref` ↔ `Ref`,
+`crud.Resource` ↔ `MasterResource`. When the API adds a field, the change on this side is one line.
+
+### 10.1 The Fixed Anatomy
+
+```text
+pagehead        title · subtitle · [ + เพิ่ม… ]        ← the one solid orange button
+toolbar         [search] [filter ▾] [filter ▾] [สถานะ ▾]
+table           columns from the descriptor · sortable headers carry aria-sort
+                actions column holds pencil + trash, revealed on row hover/focus
+foot            “แสดง 1–25 จาก 128 รายการ”  ·  ‹ 1 2 3 ›
+```
+
+Every master screen has exactly this shape. Deviating from it for one resource is a bug, not a design
+decision — the whole point is that a user who has learned one of these screens has learned all eighteen.
+
+### 10.2 Design Rules Specific to These Screens
+
+1. **The primary action is always “add”.** Editing and deleting are row-level, so they are icon buttons
+   inside the row, not toolbar buttons. One solid orange button per screen still holds.
+2. **Row actions rest at 35% opacity** and reach full opacity on row hover or keyboard focus. They must
+   never disappear entirely: an icon that only exists on hover is invisible to a keyboard user.
+3. **Delete asks first**, through an `alertdialog` naming the row. Deleting is a soft delete in the
+   database, but the user is not told that — from their side it is gone.
+4. **Codes are monospace** (`.pb-mono`), quantities and money are `data-num`. A business ID such as
+   `CUSA000041` is a code, not text.
+5. **State lives in the URL.** Page, search, sort, status filter, and every per-resource filter are
+   query parameters. A supervisor can send someone a link to “suspended vendors on route 3”.
+6. **Four states, always.** Skeleton rows while loading, an empty state that invites the add action,
+   an error state with a retry button, and the table. No screen may silently render nothing.
+
+### 10.3 The Form Dialog
+
+Two columns at 760px, collapsing to one below 720px. Fields that hold long text (`multiline`, or marked
+`wide`) span both columns. Labels sit above inputs; hints sit below in `--pb-text-3` and explain, they
+never repeat the label.
+
+References to other tables render two ways depending on how many rows the target has. Small lookups —
+ประเภทคู่ค้า, หน่วยนับ, ประเภทหนังสือ — are a `<select>`. Large ones — สินค้า, ลูกค้า, คู่ค้า — are a text
+input with a `<datalist>` that searches the server as the user types. The threshold is a `big` flag on
+the descriptor, not a guess made at render time.
+
+Validation errors from the API are pinned onto the named input. An error naming a field the dialog does
+not show falls to the dialog footer rather than being dropped — a silent failure is worse than a
+misplaced message.
+
+### 10.4 The Hub
+
+`master.html` is a card grid over all eighteen resources, grouped as ข้อมูลพื้นฐาน · สินค้าและสต็อก ·
+คู่ค้า · การจัดจำหน่าย. It exists because nine of these screens are reference tables that do not deserve
+a permanent sidebar slot but still have to be reachable in one obvious step. The hub is that step.
+
+### 10.5 Where the Uniformity Breaks
+
+Two known exceptions, both forced by the database rather than chosen:
+
+* **การผูกลูกค้ากับสาย** reads `vw_customer_route`, which returns neither `is_active` nor `update_date`.
+  The screen therefore has no status filter and no search box, and its descriptor says so with
+  `audit: false` and `searchable: false` instead of hiding the difference.
+* **หนังสือ** reads `vw_book`, which omits the description and the product's barcode, weight, and pack
+  size. Those inputs open blank when editing an existing row. Until the view is widened, the dialog
+  cannot show what it cannot read.
+
+Both are tracked in `../PENBUN-TODO.md` §2.
+
+---
+
+## 11. Design Prompt
+
+### 11.1 Master Prompt — New PenbunWeb Screens
 
 ```text
 You are the design lead for PenbunWeb, the front end for Penbun System, a wholesale and distribution system for books and stationery.
@@ -147,8 +232,10 @@ Technology (must not change):
 - Pure HTML + CSS + TypeScript only. No React, Tailwind, or UI library.
 - No runtime dependency. Charts are hand-written SVG.
 - Every class starts with pb- and colors come from 01-tokens.css. Do not write hex in other files.
-- Each page keeps only its own content inside <div id="pb-page" data-page="…">; shell.ts adds the sidebar/topbar.
-  Never duplicate the menu in page HTML.
+- Each page keeps only its own content inside <div id="pb-page" data-page="…">;
+  layouts/app-layout.ts adds the sidebar/topbar/footer from core/nav.ts. Never duplicate the menu in page HTML.
+- If the screen is a list-and-edit view over one table, it is a master screen: declare it in
+  src/ts/master/resources.ts instead of designing it. See section 10.
 
 Color roles:
 - Orange #F97316 = actionable / in progress. One solid orange button per screen.
@@ -174,7 +261,7 @@ Avoid: multicolor gradients, glassmorphism, table icons larger than 24px, floati
 implausible wholesale figures, and more than one solid orange button per screen.
 ```
 
-### 10.2 Page Prompt — Append to the Master Prompt
+### 11.2 Page Prompt — Append to the Master Prompt
 
 ```text
 Create page: <Thai page name> (data-page="<id>")
@@ -186,7 +273,7 @@ States required: normal / loading (skeleton) / empty (empty state) / error
 Highlighted navigation item: <id from nav.ts>
 ```
 
-### 10.3 Completed Example
+### 11.3 Completed Example
 
 ```text
 Create page: Sales orders (data-page="orders")
@@ -200,7 +287,7 @@ Highlighted navigation item: orders
 
 ---
 
-## 11. Deliberate Omissions
+## 12. Deliberate Omissions
 
 - No crypto/fintech dashboard with giant balances and Send/Receive actions; that is not this business.
 - No chart that does not answer a real operational question.
