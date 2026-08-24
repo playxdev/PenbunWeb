@@ -100,6 +100,11 @@ penbunweb/
 (`var(--pb-brand)`, `var(--pb-surface)`, `var(--pb-pos)` …) — **ห้ามเขียน hex ในไฟล์ CSS อื่น**
 รายละเอียดเหตุผลเชิงออกแบบอยู่ใน `DESIGN.md`
 
+### ตัวอักษร
+
+- UI/body และตัวเลข: **Google Sans** (โหลดจาก Google Fonts CDN) · รหัสเอกสาร/SKU: **IBM Plex Mono**
+- ขนาดฐาน 14px (13px ในตาราง) ตัวเลขทุกช่องใช้ `tabular-nums` — เหตุผลเชิงออกแบบอยู่ใน `DESIGN.md` §4
+
 ---
 
 ## 5. หน้าจอที่มีในรุ่นนี้
