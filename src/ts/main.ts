@@ -34,7 +34,7 @@ async function boot(): Promise<void> {
   if (!sessionStorage.getItem("penbun.betaNotice")) {
     sessionStorage.setItem("penbun.betaNotice", "1");
     window.setTimeout(
-      () => toast("PenbunWeb beta 1.0.0", "หน้าจอทั้งหมดเป็นตัวอย่าง UI ข้อมูลยังไม่เชื่อมต่อ PenbunAPI", "info", 6000),
+      () => toast("PenbunWeb beta 1.1.0", "หน้าจอทั้งหมดเป็นตัวอย่าง UI ข้อมูลยังไม่เชื่อมต่อ PenbunAPI", "info", 6000),
       900
     );
   }

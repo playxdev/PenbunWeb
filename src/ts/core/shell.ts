@@ -62,7 +62,7 @@ function sidebarMarkup(active: string): string {
       <span class="pb-brand__mark">P</span>
       <span class="pb-brand__text">
         <span class="pb-brand__name">Penbun</span>
-        <span class="pb-brand__meta">WEB BETA 1.0.0</span>
+        <span class="pb-brand__meta">WEB BETA 1.1.0</span>
       </span>
     </a>
     <nav class="pb-nav" aria-label="เมนูหลัก">${navMarkup(active)}</nav>
@@ -167,7 +167,7 @@ function footerMarkup(): string {
   <footer class="pb-footer">
     <div class="pb-footer__inner">
       <span>© 2569 Penbun System</span>
-      <span class="pb-footer__version">PenbunWeb beta 1.0.0</span>
+      <span class="pb-footer__version">PenbunWeb beta 1.1.0</span>
     </div>
   </footer>`;
 }

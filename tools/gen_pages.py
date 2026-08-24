@@ -761,7 +761,7 @@ ERR_TPL = """<a class="pb-skip-link" href="#pb-err">ข้ามไปยัง�
     <a class="pb-brand" href="/dashboard.html" style="justify-content:center;border:0;height:auto;margin-bottom:var(--pb-6)">
       <span class="pb-brand__mark">P</span>
       <span class="pb-brand__text"><span class="pb-brand__name">PenbunWeb</span>
-      <span class="pb-brand__meta">BETA 1.0.0</span></span>
+      <span class="pb-brand__meta">BETA 1.1.0</span></span>
     </a>
 
     <div class="pb-errpage__code">{code}</div>

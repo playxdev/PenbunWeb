@@ -1,4 +1,4 @@
-# PenbunWeb — beta 1.0.0
+# PenbunWeb — beta 1.1.0
 
 Front end ของ **Penbun System** (ระบบค้าส่ง/จัดจำหน่ายหนังสือและเครื่องเขียน)
 เขียนด้วย **Pure HTML + CSS + TypeScript** ไม่มี framework ไม่มี runtime dependency
@@ -29,7 +29,7 @@ npm run dev          # build + เปิด http://localhost:4173
 | `python3 tools/gen_pages.py` | สร้างหน้า list/error ใหม่จากเทมเพลตเดียว |
 
 **เข้าสู่ระบบ:** กรอกอะไรก็ได้ หรือกดปุ่ม "เข้าใช้งานแบบสาธิต" แล้วจะเข้าหน้า `dashboard.html`
-**ออกจากระบบ:** เมนูผู้ใช้ (มุมขวาบน หรือท้าย sidebar) → ล้าง `localStorage` แล้วกลับไปหน้า login
+**ออกจากระบบ:** เมนูผู้ใช้ (มุมขวาบน) → ล้าง `localStorage` แล้วกลับไปหน้า login
 
 ---
 
@@ -201,4 +201,4 @@ Cloudflare จะ `npm install` + build ใน sandbox ของตัวเอ�
 
 ---
 
-Penbun System · PenbunWeb beta 1.0.0 · PenbunAPI v4.0.0 · PenbunSQL v7.0.0
+Penbun System · PenbunWeb beta 1.1.0 · PenbunAPI v4.0.0 · PenbunSQL v7.0.0
