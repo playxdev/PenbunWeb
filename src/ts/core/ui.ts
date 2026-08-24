@@ -11,13 +11,16 @@ export function initDropdowns(): void {
   document.addEventListener("click", (e) => {
     const t = e.target as HTMLElement;
     const trigger = t.closest<HTMLElement>("[data-dropdown-trigger]");
-    const open = document.querySelectorAll<HTMLElement>(".pb-dropdown.is-open");
+    const item = t.closest<HTMLElement>(".pb-dropdown__item");
 
-    open.forEach((d) => {
-      if (!trigger || d !== trigger.closest(".pb-dropdown")) {
-        d.classList.remove("is-open");
-        d.querySelector("[data-dropdown-trigger]")?.setAttribute("aria-expanded", "false");
-      }
+    document.querySelectorAll<HTMLElement>(".pb-dropdown.is-open").forEach((d) => {
+      // Clicking the open dropdown's own trigger is handled by the toggle below.
+      if (trigger && d === trigger.closest(".pb-dropdown")) return;
+      // Clicks inside the menu stay open (e.g. the status input); choosing a
+      // menu item closes it.
+      if (d.contains(t) && !(item && d.contains(item))) return;
+      d.classList.remove("is-open");
+      d.querySelector("[data-dropdown-trigger]")?.setAttribute("aria-expanded", "false");
     });
 
     if (trigger) {
@@ -31,7 +34,10 @@ export function initDropdowns(): void {
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    document.querySelectorAll(".pb-dropdown.is-open").forEach((d) => d.classList.remove("is-open"));
+    document.querySelectorAll(".pb-dropdown.is-open").forEach((d) => {
+      d.classList.remove("is-open");
+      d.querySelector("[data-dropdown-trigger]")?.setAttribute("aria-expanded", "false");
+    });
   });
 }
 
@@ -114,6 +120,18 @@ export function initSegments(): void {
 }
 
 /* ----------------------------------------------------- sortable tables  */
+/**
+ * Cell text → number for data-num columns.
+ * Normalises the typographic minus (U+2212) used by format.ts/money output
+ * and strips separators/currency; returns null when the cell has no number.
+ */
+export function numericCellValue(text: string): number | null {
+  const cleaned = text.replace(/\u2212/g, "-").replace(/[^\d.-]/g, "");
+  if (!cleaned || cleaned === "-" || cleaned === ".") return null;
+  const n = Number.parseFloat(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
 export function initTableSort(): void {
   document.addEventListener("click", (e) => {
     const th = (e.target as HTMLElement).closest<HTMLTableCellElement>("th[data-sort]");
@@ -130,13 +148,19 @@ export function initTableSort(): void {
 
     const rows = Array.from(tbody.rows);
     const value = (r: HTMLTableRowElement): string => r.cells[index]?.textContent?.trim() ?? "";
+    const sign = dir === "ascending" ? 1 : -1;
     rows.sort((a, b) => {
       const av = value(a);
       const bv = value(b);
-      const cmp = numeric
-        ? parseFloat(av.replace(/[^\d.-]/g, "")) - parseFloat(bv.replace(/[^\d.-]/g, ""))
-        : av.localeCompare(bv, "th");
-      return dir === "ascending" ? cmp : -cmp;
+      if (!numeric) return sign * av.localeCompare(bv, "th");
+      const an = numericCellValue(av);
+      const bn = numericCellValue(bv);
+      // Cells without numbers go last in both directions and keep their order.
+      if (an === null || bn === null) {
+        if (an === bn) return 0;
+        return an === null ? 1 : -1;
+      }
+      return sign * (an - bn);
     });
     rows.forEach((r) => tbody.appendChild(r));
   });

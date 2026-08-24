@@ -108,3 +108,17 @@ export const lowStock: StockAlert[] = [
   { sku: "PK-0042", name: "กล่องบรรจุหนังสือ ขนาด M", onHand: 58, reorder: 300 },
   { sku: "ST-3388", name: "ปากกาหมึกเจล 0.5 มม. (แพ็ก 12)", onHand: 312, reorder: 600 },
 ];
+
+export interface NoticeRow {
+  title: string;
+  meta: string;
+  kind: "brand" | "pos" | "neg";
+  at: Date;
+}
+
+/** Sample notifications shown in the topbar bell dropdown. */
+export const notices: NoticeRow[] = [
+  { title: "สต็อกต่ำกว่าจุดสั่งซื้อ 12 รายการ", meta: "คลัง DC-01", kind: "neg", at: new Date(Date.now() - 12 * 6e4) },
+  { title: "ใบรับสินค้า RCV-2569-0182 ผ่านการตรวจรับ", meta: "สนพ. อมรินทร์", kind: "pos", at: new Date(Date.now() - 95 * 6e4) },
+  { title: "สาย 3 ปิดยอดฝากขายรอบเดือน", meta: "ร้านค้า 18 แห่ง", kind: "brand", at: new Date(Date.now() - 5 * 36e5) },
+];

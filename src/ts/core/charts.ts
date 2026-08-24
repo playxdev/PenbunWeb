@@ -50,6 +50,10 @@ export function renderArea(host: HTMLElement, opts: AreaOptions): void {
   const ih = h - pad.t - pad.b;
 
   const all = opts.series.flatMap((s) => s.values);
+  if (!all.length || !opts.labels.length) {
+    host.innerHTML = "";
+    return;
+  }
   const max = Math.max(...all) * 1.12;
   const min = 0;
   const x = (i: number, n: number) => pad.l + (iw * i) / Math.max(1, n - 1);
@@ -79,6 +83,7 @@ export function renderArea(host: HTMLElement, opts: AreaOptions): void {
 
   const paths = opts.series
     .map((s) => {
+      if (!s.values.length) return "";
       const pts = s.values.map((v, i) => [x(i, s.values.length), y(v)] as [number, number]);
       const line = smoothPath(pts);
       const variant = s.variant ?? "brand";
@@ -121,19 +126,22 @@ export function renderDonut(host: HTMLElement, slices: Slice[], centerLabel: str
   const total = slices.reduce((a, s) => a + s.value, 0);
   const r = 54;
   const c = 2 * Math.PI * r;
+  const safe = total > 0;
   let offset = 0;
 
-  const rings = slices
-    .map((s) => {
-      const frac = s.value / total;
-      const seg = `<circle cx="74" cy="74" r="${r}" fill="none" stroke="${s.color}" stroke-width="16"
+  const rings = !safe
+    ? ""
+    : slices
+        .map((s) => {
+          const frac = s.value / total;
+          const seg = `<circle cx="74" cy="74" r="${r}" fill="none" stroke="${s.color}" stroke-width="16"
         stroke-dasharray="${(c * frac - 2).toFixed(2)} ${(c * (1 - frac) + 2).toFixed(2)}"
         stroke-dashoffset="${(-c * offset).toFixed(2)}" stroke-linecap="round"
         transform="rotate(-90 74 74)"><title>${s.label}</title></circle>`;
-      offset += frac;
-      return seg;
-    })
-    .join("");
+          offset += frac;
+          return seg;
+        })
+        .join("");
 
   host.innerHTML = `
   <svg class="pb-donut__svg" viewBox="0 0 148 148" role="img" aria-label="${centerLabel}">
@@ -147,6 +155,10 @@ export function renderDonut(host: HTMLElement, slices: Slice[], centerLabel: str
 export function renderSparkline(host: HTMLElement, values: number[], variant: keyof typeof VAR = "brand"): void {
   const w = 120;
   const h = 34;
+  if (values.length < 2) {
+    host.innerHTML = "";
+    return;
+  }
   const max = Math.max(...values);
   const min = Math.min(...values);
   const pts = values.map(

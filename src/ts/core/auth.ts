@@ -1,7 +1,7 @@
 /**
  * auth.ts — session stub for the UI beta.
  *
- * There is no real authentication in beta 1.1.0. Any credentials are
+ * There is no real authentication in beta 1.3.0. Any credentials are
  * accepted and a fake session is written to localStorage so the shell can
  * render a user and so /dashboard.html can be guarded the same way it will
  * be once PenbunAPI issues real JWTs.

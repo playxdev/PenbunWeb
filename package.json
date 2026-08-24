@@ -1,6 +1,6 @@
 {
   "name": "penbunweb",
-  "version": "1.1.0-beta.1",
+  "version": "1.3.0-beta.1",
   "private": true,
   "description": "PenbunWeb — HTML + CSS + TypeScript front end for Penbun System (UI beta, no API yet)",
   "type": "module",
@@ -12,6 +12,7 @@
     "preview": "npm run build && npx wrangler pages dev public",
     "deploy": "npm run build && npx wrangler pages deploy",
     "clean": "rm -rf public/assets/js",
+    "test": "npm run build && node tools/test.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

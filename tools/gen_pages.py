@@ -15,10 +15,14 @@ HEAD = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>{title} · PenbunWeb</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23f97316'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>P</text></svg>">
+<link rel="icon" href="/assets/image/png/icon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/image/png/icon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/image/png/icon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/image/png/icon/apple-touch-icon.png">
+<link rel="manifest" href="/assets/image/png/icon/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/assets/css/01-tokens.css">
 <link rel="stylesheet" href="/assets/css/02-base.css">
 <link rel="stylesheet" href="/assets/css/03-layout.css">
@@ -761,7 +765,7 @@ ERR_TPL = """<a class="pb-skip-link" href="#pb-err">ข้ามไปยัง�
     <a class="pb-brand" href="/dashboard.html" style="justify-content:center;border:0;height:auto;margin-bottom:var(--pb-6)">
       <span class="pb-brand__mark">P</span>
       <span class="pb-brand__text"><span class="pb-brand__name">PenbunWeb</span>
-      <span class="pb-brand__meta">BETA 1.1.0</span></span>
+      <span class="pb-brand__meta">BETA 1.3.0</span></span>
     </a>
 
     <div class="pb-errpage__code">{code}</div>

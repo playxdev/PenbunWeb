@@ -1,27 +1,14 @@
 /**
  * standalone.ts — pages rendered outside the shell: sign-in and errors.
- * Handles the theme switch, the (fake) sign-in, and the error page actions.
+ *
+ * The layout chrome (sidebar/topbar/footer) does not exist here; the page
+ * shares only the theme controls with the app, imported from components/.
  */
 
-import { cycle, getChoice, initTheme, resolve } from "./core/theme.js";
-import { icon } from "./core/icons.js";
+import { initTheme } from "./core/theme.js";
 import { isSignedIn, signIn, signOut } from "./core/auth.js";
+import { wireThemeControls } from "./components/theme-toggle.js";
 import { toast } from "./core/ui.js";
-
-function themeIcon(): string {
-  const c = getChoice();
-  return c === "auto" ? icon("monitor") : resolve(c) === "dark" ? icon("moon") : icon("sun");
-}
-
-function wireThemeButton(): void {
-  const btn = document.querySelector<HTMLElement>("[data-theme-toggle]");
-  if (!btn) return;
-  btn.innerHTML = themeIcon();
-  btn.addEventListener("click", () => {
-    cycle();
-    btn.innerHTML = themeIcon();
-  });
-}
 
 function wireSignIn(): void {
   const form = document.querySelector<HTMLFormElement>("#pb-signin");
@@ -90,7 +77,7 @@ function wireErrorPage(): void {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
-  wireThemeButton();
+  wireThemeControls();
   wireSignIn();
   wireErrorPage();
 });

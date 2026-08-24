@@ -1,4 +1,4 @@
-# PenbunWeb — beta 1.1.0
+# PenbunWeb — beta 1.3.0
 
 Front end ของ **Penbun System** (ระบบค้าส่ง/จัดจำหน่ายหนังสือและเครื่องเขียน)
 เขียนด้วย **Pure HTML + CSS + TypeScript** ไม่มี framework ไม่มี runtime dependency
@@ -23,6 +23,7 @@ npm run dev          # build + เปิด http://localhost:4173
 | `npm run build` | คอมไพล์ `src/ts` → `public/assets/js` |
 | `npm run watch` | คอมไพล์แบบต่อเนื่อง |
 | `npm run typecheck` | ตรวจ type อย่างเดียว ไม่ emit |
+| `npm test` | build + รันชุดทดสอบ (`tools/test.mjs` — unit + HTTP smoke, ไม่มี dependency) |
 | `npm run serve` | static server (มี fallback ไป `404.html`) |
 | `npm run preview` | build แล้วรันผ่าน Wrangler Pages (จำลองสภาพจริงของ Cloudflare) |
 | `npm run deploy` | build แล้วอัปโหลด `public/` ขึ้น Cloudflare Pages |
@@ -51,23 +52,38 @@ penbunweb/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
 │     └─ js/   (ผลลัพธ์จาก tsc — ไม่ commit)
 ├─ src/ts/
-│  ├─ core/    theme · nav · auth · shell · ui · charts · icons · format
-│  ├─ data/    mock.ts          ← ข้อมูลตัวอย่างทั้งหมดอยู่ไฟล์เดียว
-│  ├─ pages/   dashboard.ts
-│  ├─ main.ts        ← entry ของหน้าที่อยู่ใน shell
+│  ├─ core/         theme · nav · auth · ui · charts · icons · format
+│  ├─ components/   sidebar · topbar · footer · brand · nav-menu · theme-toggle
+│  ├─ layouts/      app-layout.ts    ← ประกอบ sidebar+topbar+footer ครอบทุกหน้า
+│  ├─ data/         mock.ts          ← ข้อมูลตัวอย่างทั้งหมดอยู่ไฟล์เดียว
+│  ├─ pages/        dashboard.ts
+│  ├─ main.ts        ← entry ของหน้าที่อยู่ใน shell (เรียก layouts/app-layout)
 │  └─ standalone.ts  ← entry ของหน้า login / error
-├─ tools/  gen_pages.py · serve.mjs
+├─ tools/  gen_pages.py · serve.mjs · test.mjs
 ├─ wrangler.toml   ← config Cloudflare Pages (output dir = public)
 ├─ .nvmrc          ← pin Node 20 สำหรับ build บน Cloudflare
 ├─ DESIGN.md   ← concept การออกแบบ + prompt สำหรับสร้างหน้าจอเพิ่ม
 └─ tsconfig.json · package.json
 ```
 
-### หลักการสำคัญ: เมนูมีที่เดียว
+### หลักการสำคัญ: เลย์เอาต์มีที่เดียว (components + layout)
 
 หน้าเว็บแต่ละไฟล์เก็บ **เฉพาะเนื้อหาของตัวเอง** ใน `<div id="pb-page" data-page="...">`
-`shell.ts` เป็นคนประกอบ sidebar + topbar + footer ครอบให้ตอน runtime โดยอ่านเมนูจาก `src/ts/nav.ts`
-→ เพิ่ม/แก้เมนู แก้ที่ `nav.ts` ไฟล์เดียว ไม่ต้องไล่แก้ทุกหน้า
+`layouts/app-layout.ts` เป็น master layout ที่ประกอบ chrome ครอบรอบเนื้อหาตอน runtime:
+
+```
+main.ts ─► mountAppLayout(user)
+             ├─ components/sidebar.ts    ← sidebar ซ้าย + ย่อเมนู/drawer
+             ├─ components/topbar.ts     ← เมนูแนวนอน · ช่องค้นหา · กระดิ่ง · dropdown ผู้ใช้
+             ├─ <main id="pb-main">   ◄─ slot สำหรับ #pb-page ของแต่ละหน้า
+             └─ components/footer.ts
+```
+
+- **Sidebar / Navbar / Footer** อยู่ในไฟล์ component ของตัวเองไฟล์เดียว — แก้ที่เดียว
+  เปลี่ยนทุกหน้าทันที ไม่มีหน้าใดเขียน markup ของ layout เอง
+- เมนู (ข้อมูล) อยู่ที่ `core/nav.ts` · ธีม toggle ใช้ร่วมกับหน้า login/error ผ่าน
+  `components/theme-toggle.ts`
+→ เพิ่ม/แก้เมนู แก้ที่ `nav.ts` ไฟล์เดียว · เพิ่ม/แก้ topbar แก้ที่ `components/topbar.ts` ไฟล์เดียว
 
 ---
 
@@ -197,8 +213,8 @@ Cloudflare จะ `npm install` + build ใน sandbox ของตัวเอ�
 
 - เชื่อมต่อ PenbunAPI ทั้งหมด · ฟอร์มสร้าง/แก้ไขเอกสาร · ตารางแบบ virtualized
 - RBAC จริง (รอ PenbunSQL v8) · i18n (ตอนนี้ hardcode ภาษาไทย) · การพิมพ์เอกสาร
-- unit test ฝั่ง UI
+- การทดสอบ e2e/browser อัตโนมัติ (ขณะนี้มีชุดทดสอบพื้นฐาน unit + HTTP smoke ผ่าน `npm test` แล้ว)
 
 ---
 
-Penbun System · PenbunWeb beta 1.1.0 · PenbunAPI v4.0.0 · PenbunSQL v7.0.0
+Penbun System · PenbunWeb beta 1.3.0 · PenbunAPI v4.0.0 · PenbunSQL v7.0.0
