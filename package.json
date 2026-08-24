@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "gen:master": "npm run build && node tools/gen_master_pages.mjs",
     "watch": "tsc -p tsconfig.json --watch",
     "serve": "node tools/serve.mjs",
     "dev": "npm run build && npm run serve",

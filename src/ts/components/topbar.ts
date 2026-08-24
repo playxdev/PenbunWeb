@@ -20,11 +20,11 @@ export function topbarMarkup(user: Session): string {
     )}</button>
 
     <nav class="pb-topnav" aria-label="เมนูแนวนอน">
-      <a class="pb-topnav__item" href="/dashboard.html">${icon("home")}<span>หน้าแรก</span></a>
-      <a class="pb-topnav__item" href="#" data-stub="แอปพลิเคชัน">${icon("apps")}<span>แอป</span></a>
-      <a class="pb-topnav__item" href="#" data-stub="หน้า">${icon("file")}<span>หน้า</span></a>
-      <a class="pb-topnav__item" href="#" data-stub="โมดูล">${icon("boxes")}<span>โมดูล</span></a>
-      <a class="pb-topnav__item" href="#" data-stub="คู่มือการใช้งาน">${icon("book")}<span>คู่มือ</span></a>
+      <a class="pb-topnav__item" href="/products.html">${icon("boxes")}<span>สินค้าและสต็อก</span></a>
+      <a class="pb-topnav__item" href="/doc-receive.html">${icon("file")}<span>เอกสาร</span></a>
+      <a class="pb-topnav__item" href="/routes.html">${icon("truck")}<span>การจัดจำหน่าย</span></a>
+      <a class="pb-topnav__item" href="/vendors.html">${icon("handshake")}<span>คู่ค้า</span></a>
+      <a class="pb-topnav__item" href="/master.html">${icon("settings")}<span>ระบบ</span></a>
     </nav>
 
     <div class="pb-topbar__spacer"></div>
@@ -101,7 +101,14 @@ export function topbarMarkup(user: Session): string {
 
 /** Behaviour owned by the bar itself. Called once after the layout mounts. */
 export function wireTopbar(scope: ParentNode = document): void {
-  scope.querySelectorAll("[data-signout]").forEach((b) => b.addEventListener("click", () => signOut()));
+  scope.querySelectorAll("[data-signout]").forEach((b) =>
+    b.addEventListener("click", (e) => {
+      // Revoking the token is a round trip; disable the item so a second
+      // click cannot fire a logout against tokens that are already gone.
+      (e.currentTarget as HTMLButtonElement).disabled = true;
+      void signOut();
+    })
+  );
 
   // Global search shortcut.
   document.addEventListener("keydown", (e) => {

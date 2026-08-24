@@ -1,3 +1,15 @@
+# Security headers and cache policy for Cloudflare Pages.
+#
+# connect-src must list the PenbunAPI origin, or the browser blocks every
+# call from core/api.ts. 'self' alone is enough only when the API is served
+# from this same origin (a proxy or a Pages Function in front of it).
+# Otherwise append it, for example:
+#
+#   connect-src 'self' https://api.penbun.example
+#
+# Local development does not read this file — tools/serve.mjs sends no CSP —
+# so a missing origin here surfaces for the first time on a deployed build.
+
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff

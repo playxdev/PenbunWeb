@@ -1,219 +1,297 @@
 # PenbunWeb — beta 1.3.0
 
-Front end ของ **Penbun System** (ระบบค้าส่ง/จัดจำหน่ายหนังสือและเครื่องเขียน)
-เขียนด้วย **Pure HTML + CSS + TypeScript** ไม่มี framework ไม่มี runtime dependency
+Front end for **Penbun System**, a wholesale and distribution system for books and stationery.
+Built with **pure HTML + CSS + TypeScript**, with no framework and no runtime dependency.
 
-> **ขอบเขตของรุ่นนี้:** look and feel + UX/UI เท่านั้น
-> ทุกตัวเลขในหน้าจอเป็นข้อมูลตัวอย่างจาก `src/ts/data/mock.ts` ยังไม่เชื่อมต่อ PenbunAPI v4
-> ปุ่มที่ยังไม่มีการทำงานจะขึ้น toast แจ้ง แทนที่จะเงียบหรือพัง
+> **Scope of this release:** look and feel plus UX/UI, **real authentication**, and
+> **all 18 master-data screens reading and writing PenbunAPI for real**.
+> Sign-in, sign-out, token refresh and the forced first password change talk to PenbunAPI;
+> so do product, SKU, book, warehouse, route, vendor, customer, discount and every reference table.
+> Documents, stock, consignment, allocation and reports are still sample data from `src/ts/data/mock.ts`.
+> Buttons that are not implemented show a toast instead of silently doing nothing or failing.
 
 ---
 
-## 1. เริ่มใช้งาน
+## 1. Getting Started
 
 ```bash
-npm install          # ติดตั้ง TypeScript อย่างเดียว
-npm run dev          # build + เปิด http://localhost:4173
+npm install          # installs TypeScript only
+npm run dev          # build + open http://localhost:4173
 ```
 
-คำสั่งอื่น
+Other commands:
 
-| คำสั่ง | ทำอะไร |
+| Command | Description |
 |---|---|
-| `npm run build` | คอมไพล์ `src/ts` → `public/assets/js` |
-| `npm run watch` | คอมไพล์แบบต่อเนื่อง |
-| `npm run typecheck` | ตรวจ type อย่างเดียว ไม่ emit |
-| `npm test` | build + รันชุดทดสอบ (`tools/test.mjs` — unit + HTTP smoke, ไม่มี dependency) |
-| `npm run serve` | static server (มี fallback ไป `404.html`) |
-| `npm run preview` | build แล้วรันผ่าน Wrangler Pages (จำลองสภาพจริงของ Cloudflare) |
-| `npm run deploy` | build แล้วอัปโหลด `public/` ขึ้น Cloudflare Pages |
-| `python3 tools/gen_pages.py` | สร้างหน้า list/error ใหม่จากเทมเพลตเดียว |
+| `npm run build` | Compile `src/ts` → `public/assets/js` |
+| `npm run watch` | Compile continuously |
+| `npm run typecheck` | Type-check without emitting files |
+| `npm run serve` | Static server with a `404.html` fallback |
+| `npm run preview` | Build and run through Wrangler Pages |
+| `npm run deploy` | Build and upload `public/` to Cloudflare Pages |
+| `npm run gen:master` | Build, then write one HTML file per master resource from the registry |
+| `python3 tools/gen_pages.py` | Generate the remaining mock list/error pages from the shared template |
 
-**เข้าสู่ระบบ:** กรอกอะไรก็ได้ หรือกดปุ่ม "เข้าใช้งานแบบสาธิต" แล้วจะเข้าหน้า `dashboard.html`
-**ออกจากระบบ:** เมนูผู้ใช้ (มุมขวาบน) → ล้าง `localStorage` แล้วกลับไปหน้า login
+**Sign in:** a real PenbunAPI account. `POST /auth/login` issues the token pair.
+Click **ดู UI แบบสาธิต** to browse the screens with no API running — that session never calls the API.
+**Sign out:** open the user menu in the top-right corner. The access token is revoked
+server-side through `POST /auth/logout`, the local session is cleared either way, and the app returns to login.
+
+### Pointing the front end at an API
+
+The base URL is resolved at runtime by `src/ts/core/config.ts`, so one build works everywhere:
+
+| Priority | Source | Use |
+|---|---|---|
+| 1 | `localStorage["penbun.apiBase"]` | Per-browser override — `setApiBase("https://…")` |
+| 2 | `<meta name="penbun-api-base" content="…">` | Per-deployment override |
+| 3 | Host is `localhost`/`127.0.0.1` | `http://localhost:8089/api/v2` |
+| 4 | Anything else | Same origin + `/api/v2` |
+
+The prefix is `/api/v2` because that is what `main.go` mounts. PenbunAPI's README calls it v4;
+the router is the contract.
+
+Two settings must match or every request fails before it starts:
+
+- PenbunAPI `CORS_ORIGINS` must list this app's origin — add `http://localhost:4173` for `npm run dev`.
+- `public/_headers` `connect-src` must list the API origin for deployed builds.
 
 ---
 
-## 2. โครงสร้างโปรเจกต์
+## 2. Project Structure
 
-```
+```text
 penbunweb/
-├─ public/                     ← เสิร์ฟตรง ๆ ได้ทั้งโฟลเดอร์
+├─ public/                     ← served directly
 │  ├─ index.html               ← login
-│  ├─ dashboard.html           ← landing หลังเข้าสู่ระบบ
-│  ├─ products.html · stock.html · movements.html · warehouses.html · transfers.html
+│  ├─ dashboard.html           ← post-login landing page
+│  ├─ stock.html · movements.html · transfers.html      ← still mock data
 │  ├─ doc-receive.html · doc-order.html · doc-return.html · doc-vendor-return.html
-│  ├─ routes.html · consignment.html · allocation.html
-│  ├─ vendors.html · customers.html · discounts.html
-│  ├─ users.html · settings.html · profile.html · reports.html
+│  ├─ consignment.html · allocation.html · users.html · reports.html
+│  ├─ master.html            ← hub for the 18 master screens
+│  ├─ products.html · books.html · product-skus.html · warehouses.html
+│  ├─ routes.html · customer-routes.html · vendors.html · customers.html · discounts.html
+│  ├─ company.html · customer-types.html · vendor-types.html · discount-types.html
+│  ├─ product-categories.html · product-groups.html · product-formats.html
+│  ├─ unit-types.html · book-types.html                ← generated by npm run gen:master
+│  ├─ settings.html · profile.html
 │  ├─ 401.html · 403.html · 404.html · 500.html · 502.html · 503.html
-│  ├─ _headers                 ← security headers + cache (Cloudflare Pages)
+│  ├─ _headers                 ← security headers + cache rules
 │  └─ assets/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
-│     └─ js/   (ผลลัพธ์จาก tsc — ไม่ commit)
+│     └─ js/   (tsc output — not committed)
 ├─ src/ts/
-│  ├─ core/         theme · nav · auth · ui · charts · icons · format
-│  ├─ components/   sidebar · topbar · footer · brand · nav-menu · theme-toggle
-│  ├─ layouts/      app-layout.ts    ← ประกอบ sidebar+topbar+footer ครอบทุกหน้า
-│  ├─ data/         mock.ts          ← ข้อมูลตัวอย่างทั้งหมดอยู่ไฟล์เดียว
-│  ├─ pages/        dashboard.ts
-│  ├─ main.ts        ← entry ของหน้าที่อยู่ใน shell (เรียก layouts/app-layout)
-│  └─ standalone.ts  ← entry ของหน้า login / error
-├─ tools/  gen_pages.py · serve.mjs · test.mjs
-├─ wrangler.toml   ← config Cloudflare Pages (output dir = public)
-├─ .nvmrc          ← pin Node 20 สำหรับ build บน Cloudflare
-├─ DESIGN.md   ← concept การออกแบบ + prompt สำหรับสร้างหน้าจอเพิ่ม
+│  ├─ core/    config · tokens · api · auth · theme · nav · ui · charts · icons · format
+│  ├─ master/  schema · resources · repo · view · form · page · hub   ← the master engine
+│  ├─ data/    mock.ts          ← sample data for the screens not yet wired
+│  ├─ pages/   dashboard.ts
+│  ├─ main.ts        ← entry point for shell pages
+│  └─ standalone.ts  ← entry point for login/error pages
+├─ tools/  gen_pages.py · gen_master_pages.mjs · serve.mjs · test.mjs
+├─ wrangler.toml   ← Cloudflare Pages config (output dir = public)
+├─ .nvmrc           ← pins Node 20 for Cloudflare builds
+├─ DESIGN.md        ← design concept + prompts for adding screens
 └─ tsconfig.json · package.json
 ```
 
-### หลักการสำคัญ: เลย์เอาต์มีที่เดียว (components + layout)
+### Important Principle: The Menu Has One Source of Truth
 
-หน้าเว็บแต่ละไฟล์เก็บ **เฉพาะเนื้อหาของตัวเอง** ใน `<div id="pb-page" data-page="...">`
-`layouts/app-layout.ts` เป็น master layout ที่ประกอบ chrome ครอบรอบเนื้อหาตอน runtime:
-
-```
-main.ts ─► mountAppLayout(user)
-             ├─ components/sidebar.ts    ← sidebar ซ้าย + ย่อเมนู/drawer
-             ├─ components/topbar.ts     ← เมนูแนวนอน · ช่องค้นหา · กระดิ่ง · dropdown ผู้ใช้
-             ├─ <main id="pb-main">   ◄─ slot สำหรับ #pb-page ของแต่ละหน้า
-             └─ components/footer.ts
-```
-
-- **Sidebar / Navbar / Footer** อยู่ในไฟล์ component ของตัวเองไฟล์เดียว — แก้ที่เดียว
-  เปลี่ยนทุกหน้าทันที ไม่มีหน้าใดเขียน markup ของ layout เอง
-- เมนู (ข้อมูล) อยู่ที่ `core/nav.ts` · ธีม toggle ใช้ร่วมกับหน้า login/error ผ่าน
-  `components/theme-toggle.ts`
-→ เพิ่ม/แก้เมนู แก้ที่ `nav.ts` ไฟล์เดียว · เพิ่ม/แก้ topbar แก้ที่ `components/topbar.ts` ไฟล์เดียว
+Each page file contains only its own content inside `<div id="pb-page" data-page="...">`.
+At runtime, `shell.ts` wraps it with the sidebar, topbar, and footer using the menu from `src/ts/nav.ts`.
+To add or edit a menu item, change `nav.ts` once instead of updating every page.
 
 ---
 
-## 3. ธีมสว่าง/มืด
+## 3. Light/Dark Theme
 
-ใช้แนวทางเดียวกับ [cookievirus/darkmode](https://github.com/cookievirus/darkmode):
+The theme follows [cookievirus/darkmode](https://github.com/cookievirus/darkmode):
 
-1. เก็บค่าที่ผู้ใช้เลือกไว้ใน `localStorage["penbun.theme"]` = `light` | `dark` | `auto`
-2. ใส่ค่าลง `<html>` ทั้งเป็น **class** (`.light` / `.dark`) และ **attribute** (`data-bs-theme`)
-   — ทำสองอย่างเพื่อให้ยังเข้ากับ markup แบบ Bootstrap/Phoenix ได้
-3. มี inline script สั้น ๆ ใน `<head>` ของทุกหน้า ทำงาน **ก่อน first paint** → ไม่มีอาการจอกระพริบขาว
-4. `auto` ฟัง `prefers-color-scheme` แบบ live และซิงก์ข้าม tab ผ่าน `storage` event
+1. Store the user choice in `localStorage["penbun.theme"]` as `light`, `dark`, or `auto`.
+2. Apply it to `<html>` as both a class (`.light` / `.dark`) and the `data-bs-theme` attribute.
+3. A short inline script in every page `<head>` runs before first paint, preventing a white flash.
+4. `auto` listens live to `prefers-color-scheme` and synchronizes between tabs through the `storage` event.
 
-ปุ่มบน topbar หมุนตามลำดับ สว่าง → มืด → อัตโนมัติ ส่วนหน้าตั้งค่าเลือกตรง ๆ ได้
+The topbar button cycles light → dark → auto. The settings page exposes direct choices.
 
 ---
 
-## 4. สีหลัก
+## 4. Color and Type
 
-| บทบาท | ค่า | ใช้เมื่อไหร่ |
+| Role | Value | Usage |
 |---|---|---|
-| Primary / Brand | `rgb(249 115 22)` `#F97316` | ปุ่มหลัก เมนูที่เลือก แถบสายจัดส่ง เส้นกราฟหลัก |
-| Dark surface | `rgb(17 24 39)` `#111827` | พื้นการ์ดในโหมดมืด |
-| Dark canvas | `rgb(6 7 18)` `#060712` | พื้นหลังสุดในโหมดมืด และแผงซ้ายหน้า login |
-| Light canvas | `rgb(248 250 252)` `#F8FAFC` | พื้นหลังสุดในโหมดสว่าง |
-| Positive | `rgb(22 163 74)` `#16A34A` | ผ่านรายการ รับเข้า ยอดเพิ่ม |
-| Negative | `rgb(255 30 30)` `#FF1E1E` | ยกเลิก ต่ำกว่าจุดสั่ง ยอดลด |
+| Primary / Brand | `rgb(249 115 22)` `#F97316` | Primary action, active menu, route rail, main chart line |
+| Dark surface | `rgb(17 24 39)` `#111827` | Cards in dark mode |
+| Dark canvas | `rgb(6 7 18)` `#060712` | Dark page background and login left panel |
+| Light canvas | `rgb(248 250 252)` `#F8FAFC` | Light page background |
+| Positive | `rgb(22 163 74)` `#16A34A` | Posted items, receipts, increases |
+| Negative | `rgb(255 30 30)` `#FF1E1E` | Cancellations, below-reorder items, urgent reductions |
 
-สีทั้งหมดถูกประกาศครั้งเดียวใน `01-tokens.css` ส่วนไฟล์อื่นเรียกผ่านตัวแปรเท่านั้น
-(`var(--pb-brand)`, `var(--pb-surface)`, `var(--pb-pos)` …) — **ห้ามเขียน hex ในไฟล์ CSS อื่น**
-รายละเอียดเหตุผลเชิงออกแบบอยู่ใน `DESIGN.md`
+All colors are declared once in `01-tokens.css`; other CSS files must use variables such as
+`var(--pb-brand)`, `var(--pb-surface)`, and `var(--pb-pos)`. See `DESIGN.md` for the rationale.
 
-### ตัวอักษร
+Typography:
 
-- UI/body และตัวเลข: **Google Sans** (โหลดจาก Google Fonts CDN) · รหัสเอกสาร/SKU: **IBM Plex Mono**
-- ขนาดฐาน 14px (13px ในตาราง) ตัวเลขทุกช่องใช้ `tabular-nums` — เหตุผลเชิงออกแบบอยู่ใน `DESIGN.md` §4
-
----
-
-## 5. หน้าจอที่มีในรุ่นนี้
-
-**เข้าสู่ระบบ** – แยกซ้าย/ขวา ซ้ายเป็นภาพจำของระบบ ขวาเป็นฟอร์ม รองรับธีมทั้งสองโหมด
-
-**แดชบอร์ด** – KPI 4 ใบ, **แผงสายจัดส่ง** (signature element), กราฟแนวโน้มยอดขาย, สัดส่วนสต็อกแบบ donut, เอกสารล่าสุด, ความเคลื่อนไหววันนี้, สินค้าขายดี, สินค้าต่ำกว่าจุดสั่งซื้อ
-
-**หน้ารายการ (17 หน้า)** – toolbar ค้นหา/กรอง + ตารางเรียงคอลัมน์ได้ + แบ่งหน้า
-ครอบคลุมสินค้า สต็อก บัญชีเดินสินค้า คลัง โอนย้าย เอกสาร 4 ประเภท สาย ฝากขาย ดึงจากประวัติ ผู้ขาย ลูกค้า ส่วนลด ผู้ใช้ รายงาน
-
-**ตั้งค่า / โปรไฟล์** – ฟอร์ม, tabs, ตารางสิทธิ์ (โครง RBAC), อุปกรณ์ที่ใช้งาน
-
-**หน้า Error** – `401` `403` `404` `500` `502` `503` พร้อมรหัสอ้างอิงและปุ่มที่ทำงานได้จริง (ย้อนกลับ / ลองใหม่ / คัดลอกรหัส)
+- UI/body and numeric values: **Google Sans** (loaded from Google Fonts CDN).
+- Document numbers and SKUs: **IBM Plex Mono**.
+- Base size is 14px, table text is 13px, and numeric cells use `tabular-nums`.
 
 ---
 
-## 6. ต่อ API จริงอย่างไร
+## 5. Screens in This Release
 
-ตอนนี้ทุกอย่างถูกกันไว้เป็นชั้นบาง ๆ แล้ว
+**Login** — split left/right layout with support for both themes, wired to PenbunAPI.
+Failures are shown in place and named: wrong credentials, locked account (`ACCOUNT_LOCKED`),
+unreachable API, database unavailable. A first-time account is sent to the change-password
+step on the same page, because PenbunAPI blocks every other route until it is done.
 
-| สิ่งที่ต้องเปลี่ยน | ไฟล์ | เปลี่ยนเป็น |
+**Dashboard** — four KPI cards, the **route rail** (signature element), sales trend chart, stock mix donut, recent documents, today’s activity, top-selling products, and below-reorder products.
+
+**Master data (18 screens + hub)** — real CRUD against PenbunAPI. Server-side search,
+filter, sort and paging; create/edit dialogs generated from the descriptor; soft delete with
+confirmation. See §6.
+
+**List pages (mock)** — searchable/filterable toolbars, sortable tables and pagination for
+stock, movements, transfers, the four document types, consignment, allocation history, users,
+and reports. These still read `mock.ts`.
+
+**Settings/profile** — forms, tabs, an RBAC permissions table, and active-device information.
+
+**Error pages** — `401`, `403`, `404`, `500`, `502`, and `503`, with reference codes and working back/retry/copy actions.
+
+---
+
+## 6. Connecting the Real API
+
+| Change | File | Status |
 |---|---|---|
-| การเข้าสู่ระบบ | `src/ts/core/auth.ts` → `signIn()` | `POST /api/v4/auth/login` แล้วเก็บ JWT |
-| การกันหน้า | `requireSession()` | ตรวจอายุ token + refresh |
-| ข้อมูลทุกหน้า | `src/ts/data/mock.ts` | `fetch()` จาก endpoint ที่ตรงกัน แล้วคง type เดิมไว้ |
-| เมนูตามสิทธิ์ | `src/ts/core/nav.ts` | กรอง `NAV` ด้วย permission ที่ได้จาก RBAC (PenbunSQL v8) |
-| เลข version | `settings.html` ส่วน "เกี่ยวกับระบบ" | `GET /api/v4/system/version` |
+| Login | `src/ts/core/auth.ts` → `signIn()` | **Done** — `POST /auth/login`, pair stored by `core/tokens.ts` |
+| Logout | `signOut()` | **Done** — `POST /auth/logout`, then the local session is cleared |
+| Token refresh | `src/ts/core/api.ts` → `refreshSession()` | **Done** — single-flight, retried once on `TOKEN_EXPIRED` |
+| Forced first password change | `standalone.ts` + `#pb-changepw` | **Done** — `POST /auth/change-password` |
+| Page protection | `requireSession()` + `validateSession()` | **Done** — instant local guard, then `GET /auth/me` |
+| Master data (18 resources) | `src/ts/master/*` | **Done** — list, create, edit, soft delete against the five CRUD endpoints |
+| Document screens | `doc-*.html`, `src/ts/data/mock.ts` | Open — 4 specs × 9 endpoints, including the status cycle |
+| Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
+| Users | `users.html` | Blocked — PenbunAPI exposes only `PUT /users/{id}/unlock`; there is no user CRUD |
+| Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v7 has none |
+| Version number | `settings.html`, “About system” | Open — `GET /version` |
 
-ข้อควรระวังที่ยกมาจากฝั่ง SQL/API: หน้าจอนี้ **ไม่คำนวณสต็อกเอง** ทุกยอดคงเหลือถือว่ามาจาก
-บัญชีเดินสินค้า (`tb_stock_movement`) ฝั่งเซิร์ฟเวอร์ ฝั่ง client มีหน้าที่แสดงผลอย่างเดียว
+### The master-data engine
+
+PenbunAPI declares its 18 master resources as descriptors and gets five endpoints each from one
+generic engine. `src/ts/master/` is the same idea on this side: **a master screen is declared,
+not written.**
+
+```text
+master/schema.ts      Field · Ref · FilterDef · Column · MasterResource   (mirrors internal/schema + internal/crud)
+master/resources.ts   the 18 descriptors, in the order of resources.All()
+master/repo.ts        the five requests + the ref-option cache
+master/view.ts        table · toolbar · states · pagination  (markup only)
+master/form.ts        the create/edit dialog, built from Field[] and Ref[]
+master/page.ts        the controller: URL-backed state, single-flight requests
+master/hub.ts         master.html — the index of all 18
+```
+
+**Adding a resource** takes two steps: append a descriptor to `MASTERS`, then run
+`npm run gen:master` to write its HTML file. No markup, no fetch code, no form.
+
+Four things the engine does deliberately:
+
+- **Search, filter, sort and paging are server-side.** `core/ui.ts` owns `th[data-sort]` and
+  `[data-table-filter]` for client-side tables; master tables use `data-sortkey` instead so the
+  two never fight over the same table. Filtering 25 of 4,000 rows in the browser finds nothing
+  and looks broken.
+- **List state lives in the URL**, so a filtered list can be linked to and reloaded in place.
+- **Update sends only what changed.** PenbunAPI rejects `NoUpdate` fields outright and answers
+  “ไม่มีข้อมูลที่ต้องแก้ไข” to an empty body; clearing a value sends `null`, which writes NULL.
+- **Validation is the database's answer, not the browser's.** Required and max-length are checked
+  to save a round trip. Everything else arrives as `errors[]` and is pinned onto the field it names.
+
+Two limits inherited from the contract, both worth knowing before filing a bug:
+
+- An **optional ref cannot be cleared**. `ResolveRefs` treats `null` as “not sent”, so a ref can be
+  pointed elsewhere but not emptied.
+- **`customer-route` has no status column and no search.** `vw_customer_route` selects neither
+  `is_active` nor the audit columns, and the descriptor declares no `SearchColumns`.
+
+**Reading errors:** every response uses one envelope. `core/api.ts` unwraps it and throws
+`ApiError` carrying `code`, `httpStatus`, `fieldErrors` and `trace_id`.
+Branch on `err.code` only — PenbunAPI rewords `message` without calling it a contract change.
+`TOKEN_EXPIRED` means refresh, not sign out; `api.ts` already does that for you.
+
+**Where the tokens live:** `localStorage["penbun.auth"]`, owned solely by `core/tokens.ts`.
+A refresh token in localStorage is readable by any script running on this origin. The
+alternative — an HttpOnly cookie — needs a same-site backend to set it, which a static
+Pages deployment talking to a bearer-token API does not have. The CSP in `public/_headers`
+is load-bearing, not decoration.
+
+The client must not calculate stock. All balances are assumed to come from the server-side stock ledger
+(`tb_stock_movement`); the client only displays them.
 
 ---
 
-## 7. Deploy ไป Cloudflare Pages
+## 7. Deploying to Cloudflare Pages
 
-แอปเป็น static ล้วน ไม่มี runtime dependency — ฝั่ง Cloudflare **ไม่ต้องมี Node หรือ `node_modules`**
-Node ถูกใช้แค่ตอน build (`tsc` คอมไพล์ `src/ts` → `public/assets/js`) บนเครื่องเราเท่านั้น
-สิ่งที่ deploy มีแค่โฟลเดอร์ `public/` (HTML + CSS + JS)
+The app is static and has no runtime dependency. Cloudflare does not need Node or `node_modules`.
+Node is used only during the build (`tsc` compiles `src/ts` to `public/assets/js`). Deploy only `public/`.
 
-มี 2 วิธี
-
-### A. Direct upload (แนะนำ — เบาที่สุด)
+### A. Direct Upload (Recommended)
 
 ```bash
-npx wrangler login   # ครั้งแรกเท่านั้น
+npx wrangler login   # first time only
 npm run deploy
 ```
 
-`npm run deploy` รัน `tsc` แล้ว `wrangler pages deploy` อัปโหลดเฉพาะ `public/` ขึ้นไป ไม่มี build บน Cloudflare
-`wrangler` เรียกผ่าน `npx` — ไม่ติดตั้งลง `node_modules` ของโปรเจกต์ จึงไม่เพิ่มน้ำหนักให้ repo
+`npm run deploy` runs `tsc`, then `wrangler pages deploy` uploads only `public/`.
 
-### B. Git integration (deploy อัตโนมัติทุก push)
+### B. Git Integration
 
-ต่อ GitHub/GitLab ใน dashboard แล้วตั้ง build:
-
-| ช่อง | ค่า |
+| Field | Value |
 |---|---|
 | Build command | `npm run build` |
 | Build output directory | `public` |
-| Node version | `20` (อ่านจาก `.nvmrc` อัตโนมัติ) |
+| Node version | `20` (read automatically from `.nvmrc`) |
 
-Cloudflare จะ `npm install` + build ใน sandbox ของตัวเอง แล้วเสิร์ฟเฉพาะ `public/`
-`node_modules` ไม่ถูก deploy ไม่ว่าวิธีไหน
+Cloudflare runs `npm install` and the build in its own sandbox, then serves only `public/`.
 
-### ไฟล์ที่เกี่ยวข้อง
+### Related Files
 
-- `wrangler.toml` — บอก output dir ให้ `wrangler pages deploy` รู้ว่าอัปโหลดโฟลเดอร์ไหน
-- `public/_headers` — security headers (CSP, nosniff, frame deny) + cache (`html` ไม่ cache, `/assets` 1 ชม.)
-- `public/404.html` — Pages ใช้เป็นหน้า 404 อัตโนมัติ (ไฟล์นี้มีอยู่แล้ว)
-- URL ที่ไม่ใส่ `.html` (เช่น `/dashboard`) เข้าได้ — Pages จับคู่ `.html` ให้เอง
+- `wrangler.toml` — tells Wrangler which output directory to deploy.
+- `public/_headers` — security headers and cache policy.
+- `public/404.html` — automatic Pages 404 page.
+- Extensionless URLs such as `/dashboard` are mapped to `.html` by Pages.
 
-**เมื่อต่อ PenbunAPI จริง:** แก้ `connect-src 'self'` ใน `public/_headers` ให้รวม origin ของ API เช่น
-`connect-src 'self' https://api.penbun.example`
-
----
-
-## 8. คุณภาพขั้นต่ำที่รุ่นนี้ทำไว้แล้ว
-
-- Responsive ถึงมือถือ (sidebar กลายเป็น drawer + scrim, ตาราง scroll แนวนอน)
-- Keyboard: `Tab` เห็น focus ชัดทุกจุด, `Ctrl/⌘ + K` โฟกัสช่องค้นหา, `Esc` ปิด dropdown/modal
-- `prefers-reduced-motion` ปิดทรานซิชันทั้งหมด
-- ARIA: `aria-current` บนเมนู, `aria-sort` บนหัวตาราง, `role="tablist"`, skip link ทุกหน้า
-- ตัวเลขทุกช่องใช้ `tabular-nums` → คอลัมน์เงินตรงกันเสมอ
-- ไม่มี network request ตอน runtime ยกเว้นฟอนต์ (ถ้าใช้ offline ให้ self-host แล้วตัด `<link>` ออก)
+When connecting PenbunAPI, add its origin to `connect-src` in `public/_headers`, for example:
+`connect-src 'self' https://api.penbun.example`.
 
 ---
 
-## 9. ยังไม่ทำในรุ่นนี้
+## 8. Minimum Quality Already Covered
 
-- เชื่อมต่อ PenbunAPI ทั้งหมด · ฟอร์มสร้าง/แก้ไขเอกสาร · ตารางแบบ virtualized
-- RBAC จริง (รอ PenbunSQL v8) · i18n (ตอนนี้ hardcode ภาษาไทย) · การพิมพ์เอกสาร
-- การทดสอบ e2e/browser อัตโนมัติ (ขณะนี้มีชุดทดสอบพื้นฐาน unit + HTTP smoke ผ่าน `npm test` แล้ว)
+- Responsive down to mobile; the sidebar becomes a drawer and tables scroll horizontally.
+- Keyboard support: visible focus for `Tab`, `Ctrl/⌘ + K` focuses global search, and `Esc` closes dropdowns/modals.
+- `prefers-reduced-motion` disables transitions.
+- ARIA: `aria-current` on menus, `aria-sort` on sortable headers, `role="tablist"`, and a skip link on every page.
+- Numeric cells use `tabular-nums` so money columns align.
+- Fonts are the only third-party request. Master screens also call PenbunAPI; every other request
+  the app makes goes to the API origin listed in `connect-src`.
+- `npm test` runs the whole suite with no dependencies: formatting, charts, the API pipeline
+  against a stubbed `fetch`, the master registry and request builder, nav↔page consistency, and an
+  HTTP smoke test of every page and asset.
+
+---
+
+## 9. Not in This Release
+
+- PenbunAPI integration beyond `/auth/*` and the 18 master resources — document, stock,
+  consignment, allocation, user and report screens still read `mock.ts`.
+- Document create/edit forms (header + items) and virtualized tables.
+- “Remember this device” on the login form is decorative; the session always persists.
+- Password recovery (`ลืมรหัสผ่าน?`) — PenbunAPI has no endpoint for it.
+- Real RBAC (waiting for role/permission tables), i18n (currently Thai hardcoded), and document printing.
+- User administration — PenbunAPI has no endpoint to list or create one.
+
+See `../PENBUN-TODO.md` for what remains across PenbunSQL, PenbunAPI and PenbunWeb.
 
 ---
 

@@ -69,11 +69,10 @@
 
 .pb-nav__label {
   padding: 0 var(--pb-3) var(--pb-2);
-  font-size: var(--pb-fs-2xs);
+  font-size: var(--pb-fs-base);
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--pb-text-3);
+  letter-spacing: 0.02em;
+  color: var(--pb-text-2);
 }
 
 .pb-nav__link {

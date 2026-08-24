@@ -1,212 +1,208 @@
 # PenbunWeb — Design Concept & Prompt
 
-เอกสารนี้มีสองส่วน
-**ส่วนที่ 1–9** คือคอนเซปต์การออกแบบที่รุ่น beta 1.3.0 ยึดจริง
-**ส่วนที่ 10** คือ prompt พร้อมใช้ สำหรับสั่งสร้างหน้าจอใหม่ให้ออกมาหน้าตาเดียวกัน
+This document has two parts:
+**Sections 1–9** describe the design concept used by beta 1.1.0.
+**Section 10** is a ready-to-use prompt for generating new screens in the same system.
 
 ---
 
 ## 1. Thesis
 
-> **"หน้าจอนี้ต้องตอบได้ใน 3 วินาทีว่า ของอยู่ที่ไหน ไปถึงใครแล้ว และเหลือเท่าไหร่"**
+> **“This screen must answer, within three seconds, where the goods are, who has received them, and how much remains.”**
 
-Penbun ไม่ใช่ SaaS การเงิน ไม่ใช่ e-commerce แต่คือ **ธุรกิจกระจายสินค้า** ที่ทั้งวันหมุนรอบคำถามเดิม
-ของออกจากศูนย์กระจายสินค้าครบไหม สายไหนยังไม่ถึง ร้านไหนยังไม่เคลียร์ของฝากขาย
-ดังนั้นดีไซน์จึงไม่เริ่มจาก "การ์ดยอดเงินใหญ่ ๆ" แบบ dashboard ทั่วไป แต่เริ่มจาก **สาย**
+Penbun is not a finance SaaS product or an e-commerce storefront. It is a distribution business whose daily questions are:
+whether the distribution center shipped everything, which route has not arrived, and which consignment store has not been reconciled.
+The design therefore starts with the **route**, not oversized financial dashboard cards.
 
-อ้างอิงโครงหน้าตาและความหนาแน่นข้อมูลจาก Phoenix admin template (prium)
-แต่ **ระบบสี ตัวอักษร และ signature element เป็นของ Penbun เอง** ไม่ใช่การลอกทั้งชุด
+The information density and broad structure are inspired by the Phoenix admin template (Prium),
+but the color system, typography, and signature element belong to Penbun.
 
-**ผู้ใช้จริง:** เจ้าหน้าที่คลัง หัวหน้าสาย ฝ่ายขาย และผู้บริหาร ใช้บนจอ 13–24 นิ้วในออฟฟิศ
-บางส่วนใช้มือถือที่หน้าคลัง แสงจ้า → คอนทราสต์ต้องพอ ปุ่มต้องกดง่ายด้วยนิ้วโป้ง
-
----
-
-## 2. Signature element — แผงสาย (Route Rail)
-
-องค์ประกอบที่ทำให้จำหน้านี้ได้ และมีที่เดียวในทั้งระบบ
-
-```
-R-01  สายเหนือ – นนทบุรี   ●━━●━━●━━◉──○──○      184K
-                                                   3/6 จุด
-      └ จุดทึบ = ส่งแล้ว   ◉ = กำลังส่ง   ○ = ยังไม่ถึง   ● แดง = ล่าช้า
-      └ แถบส้มใต้ราง = สัดส่วนของที่จัดขึ้นรถแล้ว
-```
-
-กฎการใช้: **แถบส้มเต็มความยาว = จัดของครบ ไม่ได้แปลว่าส่งครบ**
-ตำแหน่งของหยดสีคือข้อมูล ไม่ใช่การตกแต่ง — ถ้าวันไหนเลิกใช้ระบบสาย ให้ถอด element นี้ทิ้ง อย่าดัดแปลงไปแสดงอย่างอื่น
+**Real users:** warehouse staff, route supervisors, sales staff, and executives on 13–24 inch office displays,
+with some mobile use on warehouse floors. Bright-light contrast and thumb-sized controls matter.
 
 ---
 
-## 3. Color system
+## 2. Signature Element — Route Rail
 
-สีถูกกำหนดโดยสเปกของโปรเจกต์ (6 ค่า) และถูกแปลงเป็น "บทบาท" ก่อนใช้งานเสมอ
+```text
+R-01  Northern route – Nonthaburi   ●━━●━━●━━◉──○──○      184K
+                                                        3/6 stops
+      └ filled dot = delivered   ◉ = in transit   ○ = not reached   ● red = late
+      └ orange bar below the rail = proportion loaded onto the vehicle
+```
 
-| Token | Light | Dark | บทบาท |
+Rules: a full orange bar means the goods were completely loaded; it does **not** mean all deliveries are complete.
+The dot positions carry data and are not decoration. If the system stops using routes, remove this element rather than repurposing it.
+
+---
+
+## 3. Color System
+
+Project colors are defined as six tokens and translated into roles before use:
+
+| Token | Light | Dark | Role |
 |---|---|---|---|
-| `--pb-brand` | `#F97316` | `#F97316` | การกระทำหลัก, สถานะ "กำลังดำเนินการ", เส้นกราฟหลัก |
-| `--pb-canvas` | `#F8FAFC` | `#060712` | พื้นหลังนอกสุด |
-| `--pb-surface` | `#FFFFFF` | `#111827` | พื้นการ์ด/ตาราง |
-| `--pb-pos` | `#16A34A` | `#22C55E` | ผ่านรายการ, รับเข้า, ยอดเพิ่ม |
-| `--pb-neg` | `#E11414` | `#FF4A4A` | ยกเลิก, ล่าช้า, ต่ำกว่าจุดสั่ง |
-| `--pb-text` / `-2` / `-3` | `#111827` / `#475569` / `#94A3B8` | `#E8ECF3` / `#9AA7BD` / `#64748B` | หลัก / รอง / ป้ายกำกับ |
+| `--pb-brand` | `#F97316` | `#F97316` | Primary actions, “in progress”, main chart line |
+| `--pb-canvas` | `#F8FAFC` | `#060712` | Outer page background |
+| `--pb-surface` | `#FFFFFF` | `#111827` | Cards and tables |
+| `--pb-pos` | `#16A34A` | `#22C55E` | Posted, received, increased |
+| `--pb-neg` | `#E11414` | `#FF4A4A` | Cancelled, late, below reorder |
+| `--pb-text` / `-2` / `-3` | `#111827` / `#475569` / `#94A3B8` | `#E8ECF3` / `#9AA7BD` / `#64748B` | Primary / secondary / label text |
 
-**กติกาที่ห้ามละเมิด**
+Rules that must not be broken:
 
-1. ส้ม = "สิ่งที่กดได้ หรือกำลังเกิดขึ้น" ไม่ใช่ "สิ่งที่ดี" — ยอดขายโตใช้เขียว ไม่ใช่ส้ม
-2. หนึ่งหน้าจอมีปุ่มส้มทึบได้ **หนึ่งปุ่ม** เท่านั้น (การกระทำหลักของหน้านั้น) ที่เหลือเป็น secondary/ghost
-3. `#FF1E1E` ตัวเต็มสงวนไว้สำหรับสถานะที่ต้องลงมือทันที ไม่ใช้กับปุ่มลบทั่วไปในตาราง
-4. โหมดมืดไม่ใช่การกลับสี — พื้น `#060712` กับการ์ด `#111827` ต่างกันพอให้เห็นชั้น ส่วนขอบใช้ความโปร่งใสแทนสีทึบ
-5. สีสถานะต้องมาคู่กับข้อความเสมอ ห้ามสื่อความหมายด้วยสีอย่างเดียว
+1. Orange means “actionable or in progress”, not “good”. Sales growth uses green.
+2. A screen has **one** solid orange button: its primary action. Other actions are secondary or ghost buttons.
+3. Full `#FF1E1E` is reserved for states requiring immediate attention; do not use it for ordinary delete buttons.
+4. Dark mode is not an inverted palette. `#060712` and `#111827` must remain visibly distinct; borders use transparency rather than solid color.
+5. Status colors must always be paired with text. Never communicate meaning by color alone.
 
 ---
 
 ## 4. Typography
 
-| บทบาท | ฟอนต์ | ใช้ที่ |
+| Role | Font | Usage |
 |---|---|---|
-| UI / body | **Google Sans** | ทุกอย่าง |
-| ตัวเลข | Google Sans `tabular-nums` | ทุกช่องที่เป็นจำนวนหรือเงิน |
-| รหัส/เอกสาร | **IBM Plex Mono** | เลขที่เอกสาร, SKU, รหัสอ้างอิง error |
+| UI/body | **Google Sans** | Everything |
+| Numbers | Google Sans with `tabular-nums` | Every quantity or money field |
+| Codes/documents | **IBM Plex Mono** | Document numbers, SKUs, and error reference codes |
 
-Scale: `11 · 12 · 13 · 14 · 16 · 18 · 22 · 28 · 36 · 48` px
-`14px` เป็นค่าเริ่มต้นของแอป, `13px` ในตารางและ sidebar (ข้อมูลหนาแน่น), `36px` สำหรับตัวเลข KPI
+Scale: `11 · 12 · 13 · 14 · 16 · 18 · 22 · 28 · 36 · 48` px.
+The application defaults to 14px, tables/sidebar use 13px for density, and KPI values use 36px.
 
-เหตุผลที่แยกฟอนต์ตัวเลข: ตารางเงินที่ตัวเลขเต้นคือความผิดพลาดที่แพงที่สุดของ UI ประเภทนี้
-ทุก `<td>` ที่เป็นตัวเลขต้องมี `data-num` เพื่อให้ชิดขวาและใช้ตัวเลขความกว้างเท่ากันอัตโนมัติ
-
----
-
-## 5. Layout & rhythm
-
-- Grid 12 คอลัมน์ ระยะห่าง 16px, เนื้อหาเต็มความกว้าง (ไม่มี max-width)
-- ระยะทั้งหมดเป็นทวีคูณของ 4 (`--pb-1` ถึง `--pb-12`)
-- มุมโค้ง: การ์ด 14px · ปุ่ม/อินพุต 10px · badge เต็มวง · thumbnail 6px
-- เงา: ใช้บาง ๆ เพื่อบอกชั้น ไม่ใช่เพื่อความสวย โหมดมืดใช้ขอบเรืองแทนเงา
-- โครงหน้าปกติ: `pagehead → KPI → เนื้อหาหลัก → ตาราง → ข้อมูลประกอบ`
-- Sidebar 264px ย่อเหลือ 72px ได้ (จำค่าไว้) ผ่านปุ่ม "ย่อเมนู" ที่ขอบล่าง ต่ำกว่า 992px กลายเป็น drawer
-- Footer ติดขอบล่าง สูงเท่ากับแถบล่างของ sidebar (ปุ่มย่อเมนู) ผ่าน token เดียว `--pb-bar-h: 64px`
+Separate numeric typography prevents money columns from shifting. Every numeric `<td>` must include `data-num`
+so it aligns right and uses equal-width numerals.
 
 ---
 
-## 6. Component inventory
+## 5. Layout and Rhythm
 
-ปุ่ม (primary/secondary/ghost/danger/success + sm/lg/block) · icon button · การ์ด (head/body/foot) ·
-KPI stat + delta chip · badge 5 สถานะ · avatar · dropdown (แจ้งเตือน / บัญชีผู้ใช้) · toast · modal · tabs ·
-segmented control · switch · checkbox · input/select/textarea + input group · toolbar ·
-footer bar (แถบด้านล่าง) · top nav (เมนูแนวนอน) · collapse toggle (ย่อเมนู) · ตารางเรียงได้ + แบ่งหน้า · meter · timeline · alert · empty state · skeleton · kbd ·
-กราฟ area / donut / sparkline / bar list (SVG เขียนเอง ไม่ใช้ไลบรารี)
-
-ทุกตัวเป็น class เดี่ยว prefix `pb-` และไม่มี CSS ไฟล์ไหนประกาศสีเป็น hex นอกจาก `01-tokens.css`
+- 12-column grid, 16px gaps, full-width content with no max-width.
+- All spacing is a multiple of 4 (`--pb-1` through `--pb-12`).
+- Radius: cards 14px, buttons/inputs 10px, badges fully rounded, thumbnails 6px.
+- Use subtle shadows to establish layers; dark mode uses luminous borders instead of heavy shadows.
+- Normal page order: `pagehead → KPI → main content → table → supporting information`.
+- Sidebar is 264px, collapses to 72px and remembers the choice. Below 992px it becomes a drawer.
+- Footer height matches the sidebar bottom bar through the shared `--pb-bar-h: 64px` token.
 
 ---
 
-## 7. สถานะและคำศัพท์ (ต้องใช้เหมือนกันทั้งระบบ)
+## 6. Component Inventory
 
-| สถานะเอกสาร | badge | สี |
+Buttons (primary/secondary/ghost/danger/success, sm/lg/block), icon buttons, cards (head/body/foot), KPI stats and delta chips,
+badges, avatars, dropdowns, toasts, modals, tabs, segmented controls, switches, checkboxes, input/select/textarea groups,
+toolbars, footer bars, top navigation, collapse toggles, sortable/paginated tables, meters, timelines, alerts, empty states,
+skeletons, and keyboard hints.
+
+Charts are hand-written SVG: area, donut, sparkline, and bar-list charts.
+Every component uses a `pb-` class prefix. Only `01-tokens.css` may declare hex colors.
+
+---
+
+## 7. Shared Status Vocabulary
+
+| Document status | Badge | Color |
 |---|---|---|
-| ฉบับร่าง | `pb-badge--muted` | เทา |
-| รอตรวจสอบ | `pb-badge--warn` | ส้ม/อำพัน |
-| ผ่านรายการ | `pb-badge--pos` | เขียว |
-| ยกเลิก | `pb-badge--neg` | แดง |
+| Draft | `pb-badge--muted` | Gray |
+| Pending review | `pb-badge--warn` | Orange/amber |
+| Posted | `pb-badge--pos` | Green |
+| Cancelled | `pb-badge--neg` | Red |
 
-| สถานะสต็อก | คำที่ใช้ |
-|---|---|
-| ปกติ / ต่ำ / วิกฤต | ห้ามใช้คำอื่น เช่น "หมด" "น้อย" ปนกัน |
+Stock states are exactly **Normal / Low / Critical**. Do not mix in terms such as “empty” or “small”.
 
-ปุ่มกับผลลัพธ์ต้องใช้คำเดียวกัน: กด **"ผ่านรายการ"** → toast ต้องเขียนว่า **"ผ่านรายการแล้ว"**
+Buttons and results use the same vocabulary: clicking **Post** should produce **Posted** or **Posted successfully**.
 
 ---
 
-## 8. Voice & copy
+## 8. Voice and Copy
 
-- ภาษาไทยเป็นหลัก คำเทคนิคที่ทีมใช้จริง (SKU, DC, API) เขียนทับศัพท์ได้
-- เรียกสิ่งของตามที่ผู้ใช้เรียก: "สาย" ไม่ใช่ "route object", "ฝากขาย" ไม่ใช่ "consignment record"
-- ข้อความ error บอกว่าเกิดอะไรและทำอะไรต่อ ไม่ขอโทษ ไม่คลุมเครือ
-  ✗ "เกิดข้อผิดพลาดบางอย่าง" ✓ "เชื่อมต่อ PenbunAPI ไม่ได้ ระบบจะลองใหม่อัตโนมัติ"
-- หน้าว่างคือคำเชิญให้ลงมือ ไม่ใช่การแจ้งความว่างเปล่า
-- ป้ายกำกับทำหน้าที่เดียว: label บอกชื่อ, hint อธิบาย, ห้ามยัดสองอย่างในบรรทัดเดียว
-
----
-
-## 9. Motion & accessibility
-
-- ทรานซิชัน 120ms (hover) / 200ms (ทั่วไป) / 320ms (แถบข้อมูลที่มีความหมาย) ด้วย `cubic-bezier(.4,0,.2,1)`
-- เคลื่อนไหวเฉพาะที่มีความหมาย: การ์ดไม่ลอย ปุ่มไม่เด้ง มีแค่แถบสายและ toast ที่ animate
-- `prefers-reduced-motion` → ปิดทั้งหมด
-- focus ring ส้มหนา 2px เห็นชัดทุกที่ ห้าม `outline: none` โดยไม่มีตัวแทน
-- คอนทราสต์ตัวอักษรอย่างต่ำ 4.5:1 ทั้งสองโหมด (ส้มบนพื้นขาวใช้เป็นตัวหนา ≥13px หรือใช้ `--pb-warn` แทน)
-- ทุกหน้ามี skip link, `aria-current`, `aria-sort`, และใช้งานด้วยคีย์บอร์ดได้ครบ
+- Thai is the primary product language; team terms such as SKU, DC, and API may remain as technical transliterations.
+- Use the user’s words: “route” instead of “route object”, “consignment” instead of “consignment record”.
+- Error messages state what happened and what to do next. Do not apologize or use vague language.
+- Empty states invite action rather than merely announcing emptiness.
+- Labels identify a field; hints explain it. Do not combine both jobs in one line.
 
 ---
 
-## 10. Design prompt (คัดลอกไปใช้ได้)
+## 9. Motion and Accessibility
 
-### 10.1 Master prompt — ใช้เมื่อสร้างหน้าจอใหม่ให้เข้าชุดกับ PenbunWeb
+- Transitions: 120ms hover, 200ms general, 320ms meaningful data bars, all using `cubic-bezier(.4,0,.2,1)`.
+- Animate only meaningful changes: cards do not float and buttons do not bounce; route bars and toasts may animate.
+- `prefers-reduced-motion` disables all motion.
+- Focus rings are a visible 2px orange ring. Never remove outlines without a replacement.
+- Text contrast is at least 4.5:1 in both themes. Orange on white is bold and at least 13px, or use the warning token.
+- Every page has a skip link, `aria-current`, `aria-sort`, and complete keyboard operation.
+
+---
+
+## 10. Design Prompt
+
+### 10.1 Master Prompt — New PenbunWeb Screens
 
 ```text
-คุณคือ design lead ของ PenbunWeb — front end ของระบบค้าส่ง/จัดจำหน่ายหนังสือและ
-เครื่องเขียน "Penbun System" ผู้ใช้คือเจ้าหน้าที่คลัง หัวหน้าสายจัดส่ง ฝ่ายขาย และผู้บริหาร
+You are the design lead for PenbunWeb, the front end for Penbun System, a wholesale and distribution system for books and stationery.
+Users are warehouse staff, route supervisors, sales staff, and executives.
 
-เทคโนโลยี (ห้ามเปลี่ยน):
-- Pure HTML + CSS + TypeScript เท่านั้น ไม่มี React ไม่มี Tailwind ไม่มี UI library
-- ไม่มี runtime dependency กราฟทั้งหมดเขียนเป็น SVG เอง
-- ทุก class ขึ้นต้น pb- และใช้ตัวแปรสีจาก 01-tokens.css เท่านั้น ห้ามเขียน hex ในไฟล์อื่น
-- หน้าเว็บเก็บเฉพาะเนื้อหาใน <div id="pb-page" data-page="…"> แล้วให้ layouts/app-layout.ts
-  ประกอบ sidebar/topbar จาก src/ts/components/ ครอบให้ตอน runtime — ห้ามเขียนเมนูซ้ำในไฟล์ HTML
+Technology (must not change):
+- Pure HTML + CSS + TypeScript only. No React, Tailwind, or UI library.
+- No runtime dependency. Charts are hand-written SVG.
+- Every class starts with pb- and colors come from 01-tokens.css. Do not write hex in other files.
+- Each page keeps only its own content inside <div id="pb-page" data-page="…">; shell.ts adds the sidebar/topbar.
+  Never duplicate the menu in page HTML.
 
-ระบบสี (บทบาท ไม่ใช่แค่ค่าสี):
-- ส้ม #F97316 = กดได้ / กำลังเกิดขึ้น — หนึ่งหน้าจอมีปุ่มส้มทึบได้ปุ่มเดียว
-- เขียว #16A34A = สำเร็จ, รับเข้า, ยอดเพิ่ม
-- แดง #FF1E1E = ยกเลิก, ล่าช้า, ต้องลงมือทันที
-- โหมดสว่าง: พื้น #F8FAFC การ์ด #FFFFFF | โหมดมืด: พื้น #060712 การ์ด #111827
-- ห้ามสื่อความหมายด้วยสีเพียงอย่างเดียว ต้องมีข้อความกำกับเสมอ
+Color roles:
+- Orange #F97316 = actionable / in progress. One solid orange button per screen.
+- Green #16A34A = success, received, increased.
+- Red #FF1E1E = cancelled, late, immediate attention.
+- Light: canvas #F8FAFC, surface #FFFFFF. Dark: canvas #060712, surface #111827.
+- Never use color alone to communicate status.
 
-ตัวอักษร: Google Sans, ตัวเลขทุกช่องใช้ tabular-nums,
-รหัสเอกสาร/SKU ใช้ IBM Plex Mono, ขนาดฐาน 14px และ 13px ในตาราง
+Typography: Google Sans, tabular-nums for numbers, IBM Plex Mono for document/SKU codes,
+14px base and 13px in tables.
 
-โครงหน้า: grid 12 คอลัมน์ ระยะ 16px เนื้อหาเต็มความกว้าง ระยะทุกค่าเป็นทวีคูณของ 4
-การ์ดมุม 14px ปุ่ม/อินพุตมุม 10px เงาบางเพื่อบอกชั้นเท่านั้น
+Layout: 12-column grid, 16px gaps, full-width content, all spacing in multiples of 4,
+14px cards, 10px buttons/inputs, and subtle shadows only.
 
-ภาษาและถ้อยคำ: ภาษาไทย เรียกสิ่งของตามที่ผู้ใช้เรียก (สาย, ฝากขาย, ดึงจากประวัติ)
-ปุ่มกับผลลัพธ์ใช้คำเดียวกัน ข้อความ error บอกสาเหตุและทางออก ไม่ขอโทษ
+Language: Thai first. Use the operational terms route, consignment, and allocation history.
+Buttons and outcomes use the same words. Errors state the cause and the next action.
 
-คุณภาพขั้นต่ำ: responsive ถึงมือถือ, focus ring ชัด, aria-current/aria-sort ครบ,
-เคารพ prefers-reduced-motion, ไม่ใช้ localStorage เพื่อเก็บข้อมูลธุรกิจ (เก็บได้แค่ธีมกับสถานะ UI)
+Quality: responsive to mobile, clear focus rings, complete aria-current/aria-sort,
+prefers-reduced-motion support, and no localStorage for business data
+(theme/UI state only, plus the session token owned by core/tokens.ts).
 
-ห้าม: gradient หลากสี, glassmorphism, ไอคอนใหญ่เกิน 24px ในตาราง, การ์ดที่ลอยตอน hover,
-ตัวเลขปลอมที่ไม่สมเหตุสมผลกับธุรกิจค้าส่ง, ปุ่มส้มมากกว่าหนึ่งปุ่มต่อหน้าจอ
+Avoid: multicolor gradients, glassmorphism, table icons larger than 24px, floating cards,
+implausible wholesale figures, and more than one solid orange button per screen.
 ```
 
-### 10.2 Page prompt — เติมช่องว่างต่อท้าย master prompt
+### 10.2 Page Prompt — Append to the Master Prompt
 
 ```text
-สร้างหน้า: <ชื่อหน้าไทย> (data-page="<id>")
-งานเดียวที่หน้านี้ต้องทำให้สำเร็จ: <ผู้ใช้มาที่นี่เพื่อ…>
-การกระทำหลัก (ปุ่มส้มปุ่มเดียว): <ชื่อปุ่ม>
-ข้อมูลที่ต้องเห็นก่อนเลื่อนจอ: <3–5 อย่าง>
-ตาราง: คอลัมน์ <…> เรียงได้ที่ <…> ช่องที่เป็นตัวเลขใส่ data-num
-สถานะที่ต้องรองรับ: ปกติ / กำลังโหลด (skeleton) / ว่าง (empty state) / ผิดพลาด
-เมนูที่ต้อง highlight: <id ใน nav.ts>
+Create page: <Thai page name> (data-page="<id>")
+The one job this page must accomplish: <the user comes here to…>
+Primary action (one orange button): <button label>
+Information visible before scrolling: <3–5 items>
+Table: columns <…>; sortable columns <…>; numeric cells include data-num
+States required: normal / loading (skeleton) / empty (empty state) / error
+Highlighted navigation item: <id from nav.ts>
 ```
 
-### 10.3 ตัวอย่างที่กรอกแล้ว
+### 10.3 Completed Example
 
 ```text
-สร้างหน้า: ใบสั่งขาย (data-page="orders")
-งานเดียวที่หน้านี้ต้องทำให้สำเร็จ: หาใบที่ยังไม่ผ่านรายการ แล้วเปิดตรวจได้ทันที
-การกระทำหลัก: "สร้างใบสั่งขาย"
-ข้อมูลที่ต้องเห็นก่อนเลื่อนจอ: จำนวนใบรอตรวจสอบ, มูลค่ารวมวันนี้, ตารางใบล่าสุด 10 แถว
-ตาราง: เลขที่เอกสาร / ลูกค้า / สาย / วันที่ / จำนวนรายการ / มูลค่า / สถานะ
-สถานะที่ต้องรองรับ: ฉบับร่าง · รอตรวจสอบ · ผ่านรายการ · ยกเลิก
-เมนูที่ต้อง highlight: orders
+Create page: Sales orders (data-page="orders")
+The one job this page must accomplish: find orders awaiting review and open one immediately
+Primary action: “Create sales order”
+Information visible before scrolling: pending-review count, today’s total value, latest 10 orders
+Table: document number / customer / route / date / line count / value / status
+States required: Draft · Pending review · Posted · Cancelled
+Highlighted navigation item: orders
 ```
 
 ---
 
-## 11. สิ่งที่จงใจ "ไม่ทำ"
+## 11. Deliberate Omissions
 
-- ไม่ทำ dashboard แบบ crypto/fintech (ยอดเงินยักษ์ + ปุ่ม Send/Receive) เพราะไม่ใช่งานของธุรกิจนี้
-- ไม่ใส่กราฟที่ตอบคำถามไม่ได้ — ทุกกราฟในหน้าแรกตอบคำถามที่ผู้ใช้ถามจริงทุกเช้า
-- ไม่ทำ animation ตอนโหลดหน้า เพราะผู้ใช้เปิดหน้านี้วันละหลายสิบครั้ง
-- ไม่ใส่ illustration สต็อก ใช้ empty state ที่เป็นข้อความสั่งการแทน
+- No crypto/fintech dashboard with giant balances and Send/Receive actions; that is not this business.
+- No chart that does not answer a real operational question.
+- No page-load animation; users open these screens dozens of times per day.
+- No stock illustrations; empty states use actionable text instead.

@@ -305,3 +305,105 @@
 .pb-deflist dt { color: var(--pb-text-3); font-size: var(--pb-fs-xs); font-weight: 600; }
 .pb-deflist dd { margin: 0; }
 @media (max-width: 640px) { .pb-deflist { grid-template-columns: 1fr; gap: var(--pb-1); } }
+
+/* ══════════════════════════════════════════════════════ master data pages */
+/* Screens built by src/ts/master. Every colour is a token; the only new
+   shapes are the dialog chrome, the two-column form grid, and the row
+   actions column — nothing here is specific to one resource. */
+
+.pb-mono {
+  font-family: var(--pb-font-mono);
+  font-size: 0.92em;
+}
+
+/* Sortable header: the ↑/↓ marker comes from .pb-table th[aria-sort]::after,
+   the button exists so the control is reachable by keyboard. */
+.pb-th-sort { cursor: pointer; user-select: none; }
+.pb-th-sort:hover { color: var(--pb-text); }
+.pb-th-btn {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+.pb-th-btn:focus-visible { outline: 2px solid var(--pb-brand); outline-offset: 2px; }
+
+.pb-col-actions { width: 1%; white-space: nowrap; text-align: end; }
+.pb-rowacts { display: inline-flex; gap: var(--pb-1); justify-content: flex-end; }
+/* Row actions stay quiet until the row is touched — a table of 25 rows with
+   50 permanent buttons reads as noise. */
+.pb-table tbody .pb-rowacts { opacity: 0.35; transition: opacity var(--pb-dur-fast) var(--pb-ease); }
+.pb-table tbody tr:hover .pb-rowacts,
+.pb-table tbody tr:focus-within .pb-rowacts { opacity: 1; }
+.pb-iconbtn--danger:hover { color: var(--pb-neg); border-color: var(--pb-neg); }
+
+.pb-filter { width: auto; min-width: 150px; max-width: 220px; }
+
+/* ------------------------------------------------------------ dialog */
+.pb-modal__panel--lg { width: min(760px, 100%); }
+
+.pb-modal__head,
+.pb-modal__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--pb-3);
+  padding: var(--pb-4) var(--pb-5);
+}
+.pb-modal__head { border-bottom: 1px solid var(--pb-divider); justify-content: space-between; }
+.pb-modal__foot { border-top: 1px solid var(--pb-divider); justify-content: flex-end; }
+.pb-modal__foot .pb-error { margin-inline-end: auto; text-align: start; }
+.pb-modal__title { font-size: var(--pb-fs-lg); font-weight: 650; margin: 0; }
+.pb-modal__sub { font-size: var(--pb-fs-xs); color: var(--pb-text-3); margin-top: 2px; }
+.pb-modal__body {
+  padding: var(--pb-5);
+  max-height: min(62vh, 560px);
+  overflow-y: auto;
+}
+.pb-modal__body p { margin: 0 0 var(--pb-2); }
+
+.pb-formgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pb-4);
+}
+.pb-formgrid .pb-field + .pb-field { margin-top: 0; }
+.pb-field--wide { grid-column: 1 / -1; }
+@media (max-width: 720px) {
+  .pb-formgrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --------------------------------------------------------------- hub */
+.pb-mastergrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--pb-3);
+}
+.pb-mastercard {
+  display: flex;
+  gap: var(--pb-3);
+  padding: var(--pb-4);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-r-md);
+  background: var(--pb-surface-2);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--pb-dur) var(--pb-ease), background var(--pb-dur) var(--pb-ease);
+}
+.pb-mastercard:hover { border-color: var(--pb-brand); background: var(--pb-surface); }
+.pb-mastercard__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--pb-r-sm);
+  background: var(--pb-brand-soft);
+  color: var(--pb-brand);
+}
+.pb-mastercard__icon svg { width: 18px; height: 18px; }
+.pb-mastercard__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pb-mastercard__title { font-weight: 650; }
+.pb-mastercard__sub { font-size: var(--pb-fs-xs); color: var(--pb-text-2); }
+.pb-mastercard__meta { font-size: var(--pb-fs-xs); color: var(--pb-text-3); }

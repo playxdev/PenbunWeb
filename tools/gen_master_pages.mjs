@@ -1,0 +1,106 @@
+/**
+ * gen_master_pages.mjs — write one thin HTML file per master resource.
+ *
+ * The registry in src/ts/master/resources.ts is the single source of truth
+ * for which master screens exist, so the pages are generated from it rather
+ * than kept in a second list that would drift. Run after a build:
+ *
+ *     npm run gen:master
+ *
+ * Each file carries only <div id="pb-page" data-page="…"> plus a skeleton;
+ * main.ts matches data-page against the registry and renders the rest. The
+ * skeleton is what the user sees between first paint and the first response,
+ * so it is real markup rather than an empty div.
+ */
+import { writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const OUT = new URL("../public/", import.meta.url);
+const { MASTERS } = await import(new URL("../public/assets/js/master/resources.js", import.meta.url));
+
+const escape = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+const head = (title) => `<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>${escape(title)} · PenbunWeb</title>
+<link rel="icon" href="/assets/image/png/icon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/image/png/icon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/image/png/icon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/image/png/icon/apple-touch-icon.png">
+<link rel="manifest" href="/assets/image/png/icon/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/css/01-tokens.css">
+<link rel="stylesheet" href="/assets/css/02-base.css">
+<link rel="stylesheet" href="/assets/css/03-layout.css">
+<link rel="stylesheet" href="/assets/css/04-components.css">
+<link rel="stylesheet" href="/assets/css/05-pages.css">
+<script>
+(function () {
+  try {
+    var c = localStorage.getItem("penbun.theme") || "auto";
+    var dark = c === "dark" || (c === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+    var r = document.documentElement;
+    r.classList.add(dark ? "dark" : "light");
+    r.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    r.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="pb-skip-link" href="#pb-page">ข้ามไปยังเนื้อหาหลัก</a>
+`;
+
+const TAIL = '\n<script type="module" src="/assets/js/main.js"></script>\n</body>\n</html>\n';
+
+/** Placeholder shown until master/page.ts replaces it with the real screen. */
+const skeleton = (m) => `
+<div id="pb-page" data-page="${escape(m.page)}">
+  <div class="pb-pagehead">
+    <div class="pb-pagehead__titles">
+      <div class="pb-eyebrow">${escape(m.group)}</div>
+      <h1>${escape(m.label)}</h1>
+      <p class="pb-pagehead__sub">${escape(m.subtitle)}</p>
+    </div>
+  </div>
+  <div class="pb-card">
+    <div class="pb-card__body">
+      <span class="pb-skeleton" style="display:block;height:40px;margin-bottom:var(--pb-4)"></span>
+      <span class="pb-skeleton" style="display:block;height:220px"></span>
+    </div>
+  </div>
+</div>
+`;
+
+for (const m of MASTERS) {
+  const file = new URL(`${m.page}.html`, OUT);
+  writeFileSync(file, head(m.label) + skeleton(m) + TAIL, "utf8");
+  console.log("wrote", `${m.page}.html`, `→ /${m.name}`);
+}
+
+/* The hub is not a resource, but it is generated here so its chrome cannot
+   drift from the pages it links to. */
+const HUB = `
+<div id="pb-page" data-page="master">
+  <div class="pb-pagehead">
+    <div class="pb-pagehead__titles">
+      <div class="pb-eyebrow">ระบบ</div>
+      <h1>ข้อมูลพื้นฐาน</h1>
+      <p class="pb-pagehead__sub">ตารางอ้างอิงที่หน้าจออื่นเรียกใช้</p>
+    </div>
+  </div>
+  <div class="pb-card"><div class="pb-card__body">
+    <span class="pb-skeleton" style="display:block;height:220px"></span>
+  </div></div>
+</div>
+`;
+writeFileSync(new URL("master.html", OUT), head("ข้อมูลพื้นฐาน") + HUB + TAIL, "utf8");
+console.log("wrote master.html (hub)");
+console.log(`${MASTERS.length} master pages + 1 hub → ${fileURLToPath(OUT)}`);

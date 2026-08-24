@@ -3,6 +3,11 @@
 
 Only look-and-feel pages: every table below is static sample data. Run:
     python3 tools/gen_pages.py
+
+The eighteen master-data screens are NOT here. They read and write real rows
+through PenbunAPI, are declared in src/ts/master/resources.ts, and their HTML
+is generated from that registry by `npm run gen:master`. Adding a master page
+to this file would overwrite a live screen with sample data.
 """
 from pathlib import Path
 
@@ -156,84 +161,6 @@ BTN_SECOND = '<button class="pb-btn pb-btn--secondary" data-stub="ยังไ�
 PAGES = []
 
 # ----------------------------------------------------------------- products
-PAGES.append(
-    dict(
-        page_id="products",
-        file="products.html",
-        title="สินค้า",
-        eyebrow="สินค้าและสต็อก",
-        sub="สินค้ามีสต็อกและบริการไม่มีสต็อก อยู่ในระบบเดียวกันตามแนวคิด Hybrid Core",
-        actions=[BTN_SECOND.format("นำเข้า CSV"), BTN_PRIMARY.format("เพิ่มสินค้า")],
-        columns=[
-            {"label": "สินค้า"},
-            {"label": "ประเภท"},
-            {"label": "ผู้ขาย"},
-            {"label": "ราคาปก", "num": True},
-            {"label": "คงเหลือ", "num": True},
-            {"label": "สถานะ", "sort": False},
-        ],
-        rows=[
-            [
-                main_cell("แบบฝึกหัดคณิตศาสตร์ ป.4 (ฉบับปรับปรุง)", "BK-10241 · ISBN 978-616-000-001", "book"),
-                "<td>หนังสือเรียน</td>",
-                "<td>สนพ. อมรินทร์พริ้นติ้ง</td>",
-                money(185.00),
-                num(96),
-                f"<td>{badge('ต่ำกว่าจุดสั่ง', 'neg')}</td>",
-            ],
-            [
-                main_cell("สมุดเส้นบรรทัด 70 แกรม 40 แผ่น", "ST-2210 · แพ็ก 10 เล่ม", "box"),
-                "<td>เครื่องเขียน</td>",
-                "<td>บจก. ไทยเปเปอร์</td>",
-                money(45.00),
-                num(240),
-                f"<td>{badge('ต่ำกว่าจุดสั่ง', 'neg')}</td>",
-            ],
-            [
-                main_cell("ปากกาหมึกเจล 0.5 มม. (แพ็ก 12)", "ST-3388", "box"),
-                "<td>เครื่องเขียน</td>",
-                "<td>บจก. ควอนตัมเพน</td>",
-                money(120.00),
-                num(312),
-                f"<td>{badge('ใช้งาน', 'pos')}</td>",
-            ],
-            [
-                main_cell("หนังสืออ่านนอกเวลา ม.ต้น ชุดที่ 2", "BK-77120 · ISBN 978-616-000-114", "book"),
-                "<td>หนังสือทั่วไป</td>",
-                "<td>สนพ. นานมีบุ๊คส์</td>",
-                money(240.00),
-                num(1_180),
-                f"<td>{badge('ใช้งาน', 'pos')}</td>",
-            ],
-            [
-                main_cell("กล่องบรรจุหนังสือ ขนาด M", "PK-0042", "box"),
-                "<td>บรรจุภัณฑ์</td>",
-                "<td>บจก. บ็อกซ์มาสเตอร์</td>",
-                money(18.00),
-                num(58),
-                f"<td>{badge('ต่ำกว่าจุดสั่ง', 'neg')}</td>",
-            ],
-            [
-                main_cell("ค่าจัดส่งพัสดุต่อเที่ยว", "SV-9001 · บริการ ไม่ตัดสต็อก", "truck"),
-                "<td>บริการ</td>",
-                "<td>ภายในองค์กร</td>",
-                money(350.00),
-                '<td data-num class="pb-dim">ไม่มีสต็อก</td>',
-                f"<td>{badge('บริการ', 'brand')}</td>",
-            ],
-            [
-                main_cell("ค่าบริการระบบไอที (รายเดือน)", "SV-9002 · บริการ ไม่ตัดสต็อก", "truck"),
-                "<td>บริการ</td>",
-                "<td>ภายในองค์กร</td>",
-                money(8_500.00),
-                '<td data-num class="pb-dim">ไม่มีสต็อก</td>',
-                f"<td>{badge('บริการ', 'brand')}</td>",
-            ],
-        ],
-        foot="แสดง 7 จาก 4,286 รายการ",
-    )
-)
-
 # -------------------------------------------------------------------- stock
 PAGES.append(
     dict(
@@ -336,43 +263,6 @@ PAGES.append(
 )
 
 # --------------------------------------------------------------- warehouses
-PAGES.append(
-    dict(
-        page_id="warehouses",
-        file="warehouses.html",
-        title="คลังสินค้า",
-        eyebrow="สินค้าและสต็อก",
-        sub="ศูนย์กระจายสินค้าและคลังสาขา พร้อมความจุที่ใช้ไป",
-        actions=[BTN_PRIMARY.format("เพิ่มคลัง")],
-        columns=[
-            {"label": "คลัง"},
-            {"label": "ประเภท"},
-            {"label": "ผู้ดูแล"},
-            {"label": "รายการ", "num": True},
-            {"label": "ใช้ความจุ", "sort": False},
-            {"label": "สถานะ", "sort": False},
-        ],
-        rows=[
-            [main_cell("DC-01 ศูนย์กระจายสินค้า", "บางบัวทอง นนทบุรี", "wh"), "<td>ศูนย์กระจายสินค้า</td>",
-             "<td>สมชาย ก.</td>", num(3_120),
-             '<td style="min-width:140px"><div class="pb-meter"><span class="pb-meter__fill" style="width:78%"></span></div><span class="pb-barlist__meta">78%</span></td>',
-             f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("WH-02 คลังสาขาบางแค", "บางแค กรุงเทพฯ", "wh"), "<td>คลังสาขา</td>",
-             "<td>อารีย์ ส.</td>", num(1_640),
-             '<td><div class="pb-meter"><span class="pb-meter__fill" style="width:52%"></span></div><span class="pb-barlist__meta">52%</span></td>',
-             f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("WH-03 คลังสาขานครปฐม", "เมือง นครปฐม", "wh"), "<td>คลังสาขา</td>",
-             "<td>ธนา พ.</td>", num(910),
-             '<td><div class="pb-meter"><span class="pb-meter__fill pb-meter__fill--neg" style="width:94%"></span></div><span class="pb-barlist__meta">94%</span></td>',
-             f"<td>{badge('เกือบเต็ม', 'neg')}</td>"],
-            [main_cell("WH-04 คลังพักสินค้าคืน", "บางบัวทอง นนทบุรี", "wh"), "<td>คลังพัก</td>",
-             "<td>สมชาย ก.</td>", num(268),
-             '<td><div class="pb-meter"><span class="pb-meter__fill" style="width:21%"></span></div><span class="pb-barlist__meta">21%</span></td>',
-             f"<td>{badge('พักการใช้งาน', 'muted')}</td>"],
-        ],
-    )
-)
-
 # ---------------------------------------------------------------- transfers
 PAGES.append(
     dict(
@@ -451,42 +341,6 @@ for pid, fname, title, sub, prefix, party in DOC_PAGES:
     )
 
 # ------------------------------------------------------------------- routes
-PAGES.append(
-    dict(
-        page_id="routes",
-        file="routes.html",
-        title="สาย / เส้นทาง",
-        eyebrow="การจัดจำหน่าย",
-        sub="เส้นทางจัดส่งประจำ พร้อมจำนวนจุดส่งและรอบการวิ่ง",
-        actions=[BTN_PRIMARY.format("เพิ่มสาย")],
-        columns=[
-            {"label": "สาย"},
-            {"label": "ผู้ขับ / รถ"},
-            {"label": "จุดส่ง", "num": True},
-            {"label": "รอบวิ่ง"},
-            {"label": "ยอดเดือนนี้", "num": True},
-            {"label": "สถานะ", "sort": False},
-        ],
-        rows=[
-            [main_cell("R-01 สายเหนือ – นนทบุรี", "บางบัวทอง · ปากเกร็ด · บางใหญ่", "truck"),
-             "<td>ประสิทธิ์ ม. · 1กก-4471</td>", num(6), "<td>จันทร์ / พฤหัสบดี</td>", money(184_320),
-             f"<td>{badge('กำลังวิ่ง', 'brand')}</td>"],
-            [main_cell("R-02 สายตะวันออก – ชลบุรี", "ศรีราชา · บ้านบึง", "truck"),
-             "<td>วิรัตน์ ท. · 2ขค-9930</td>", num(5), "<td>อังคาร / ศุกร์</td>", money(129_850),
-             f"<td>{badge('กำลังวิ่ง', 'brand')}</td>"],
-            [main_cell("R-03 สายใต้ – สมุทรสาคร", "กระทุ่มแบน · บ้านแพ้ว", "truck"),
-             "<td>อนันต์ ว. · 3งจ-1120</td>", num(5), "<td>พุธ</td>", money(96_240),
-             f"<td>{badge('ส่งครบแล้ว', 'pos')}</td>"],
-            [main_cell("R-04 สายกลาง – กรุงเทพชั้นใน", "บางแค · ภาษีเจริญ · ธนบุรี", "truck"),
-             "<td>เกรียงไกร ป. · 4ฉช-7781</td>", num(7), "<td>ทุกวันทำการ</td>", money(212_760),
-             f"<td>{badge('ล่าช้า 1 จุด', 'neg')}</td>"],
-            [main_cell("R-05 สายอีสาน – นครราชสีมา", "เมือง · ปากช่อง", "truck"),
-             "<td>สุชาติ บ. · 5ญฐ-2205</td>", num(4), "<td>เสาร์</td>", money(143_910),
-             f"<td>{badge('กำลังวิ่ง', 'brand')}</td>"],
-        ],
-    )
-)
-
 # -------------------------------------------------------------- consignment
 PAGES.append(
     dict(
@@ -549,112 +403,8 @@ PAGES.append(
 )
 
 # ------------------------------------------------------------------ vendors
-PAGES.append(
-    dict(
-        page_id="vendors",
-        file="vendors.html",
-        title="ผู้ขาย / สำนักพิมพ์",
-        eyebrow="คู่ค้า",
-        sub="ผู้ขายทุกประเภทอยู่ในตารางเดียว แยกด้วยประเภทผู้ขาย ตามแนวคิด Hybrid Core",
-        actions=[BTN_PRIMARY.format("เพิ่มผู้ขาย")],
-        columns=[
-            {"label": "ผู้ขาย"},
-            {"label": "ประเภท"},
-            {"label": "ผู้ติดต่อ"},
-            {"label": "เครดิต"},
-            {"label": "ยอดซื้อปีนี้", "num": True},
-            {"label": "สถานะ", "sort": False},
-        ],
-        rows=[
-            [main_cell("สนพ. อมรินทร์พริ้นติ้ง", "VND-0001 · เลขผู้เสียภาษี 0105•••••••", "store"),
-             f"<td>{badge('สำนักพิมพ์', 'brand')}</td>", "<td>คุณนภา 02-•••-1200</td>", "<td>60 วัน</td>",
-             money(4_182_600), f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("สนพ. นานมีบุ๊คส์", "VND-0002", "store"),
-             f"<td>{badge('สำนักพิมพ์', 'brand')}</td>", "<td>คุณธีระ 02-•••-4410</td>", "<td>45 วัน</td>",
-             money(2_940_100), f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("บจก. ไทยเปเปอร์", "VND-0014", "store"),
-             f"<td>{badge('ผู้ผลิต', 'muted')}</td>", "<td>คุณสุนี 034-•••-902</td>", "<td>30 วัน</td>",
-             money(1_268_450), f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("บจก. ควอนตัมเพน", "VND-0021", "store"),
-             f"<td>{badge('ผู้ผลิต', 'muted')}</td>", "<td>คุณวิชัย 02-•••-8830</td>", "<td>เงินสด</td>",
-             money(612_300), f"<td>{badge('พักการใช้งาน', 'muted')}</td>"],
-            [main_cell("บจก. บ็อกซ์มาสเตอร์", "VND-0033", "store"),
-             f"<td>{badge('บรรจุภัณฑ์', 'muted')}</td>", "<td>คุณอรอนงค์ 02-•••-7712</td>", "<td>30 วัน</td>",
-             money(388_900), f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-        ],
-    )
-)
-
 # ---------------------------------------------------------------- customers
-PAGES.append(
-    dict(
-        page_id="customers",
-        file="customers.html",
-        title="ลูกค้า / ร้านค้า",
-        eyebrow="คู่ค้า",
-        sub="ร้านค้าปลีก โรงเรียน และสหกรณ์ ที่รับสินค้าผ่านสายจัดส่ง",
-        actions=[BTN_SECOND.format("นำเข้า CSV"), BTN_PRIMARY.format("เพิ่มลูกค้า")],
-        columns=[
-            {"label": "ลูกค้า"},
-            {"label": "ประเภท"},
-            {"label": "สาย"},
-            {"label": "ระดับส่วนลด"},
-            {"label": "ยอดขายปีนี้", "num": True},
-            {"label": "สถานะ", "sort": False},
-        ],
-        rows=[
-            [main_cell("ร้านหนังสือบ้านสวน", "CUS-0104 · บางบัวทอง นนทบุรี", "store"), "<td>ร้านค้าปลีก</td>",
-             "<td>R-01</td>", f"<td>{badge('ระดับ A', 'brand')}</td>", money(1_284_500),
-             f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("ศึกษาภัณฑ์ นครปฐม", "CUS-0221 · เมืองนครปฐม", "store"), "<td>ร้านค้าส่ง</td>",
-             "<td>R-04</td>", f"<td>{badge('ระดับ A', 'brand')}</td>", money(2_106_800),
-             f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("ร้านเครื่องเขียนแสงทอง", "CUS-0318 · ศรีราชา ชลบุรี", "store"), "<td>ร้านค้าปลีก</td>",
-             "<td>R-02</td>", f"<td>{badge('ระดับ B', 'muted')}</td>", money(642_300),
-             f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-            [main_cell("สหกรณ์โรงเรียนวัดไผ่", "CUS-0402 · ปากช่อง นครราชสีมา", "store"), "<td>สหกรณ์</td>",
-             "<td>R-05</td>", f"<td>{badge('ระดับ C', 'muted')}</td>", money(318_900),
-             f"<td>{badge('เกินวงเงิน', 'neg')}</td>"],
-            [main_cell("ร้านหนังสือดวงกมล สาขา 3", "CUS-0507 · บ้านแพ้ว สมุทรสาคร", "store"), "<td>ร้านค้าปลีก</td>",
-             "<td>R-03</td>", f"<td>{badge('ระดับ B', 'muted')}</td>", money(884_100),
-             f"<td>{badge('ใช้งาน', 'pos')}</td>"],
-        ],
-        foot="แสดง 5 จาก 612 รายการ",
-    )
-)
-
 # ---------------------------------------------------------------- discounts
-PAGES.append(
-    dict(
-        page_id="discounts",
-        file="discounts.html",
-        title="โครงสร้างส่วนลด",
-        eyebrow="คู่ค้า",
-        sub="ส่วนลดสี่มิติที่สืบทอดมาจากระบบเดิมปี 2018 — ลูกค้า × หมวดสินค้า × ผู้ขาย × ช่วงเวลา",
-        actions=[BTN_PRIMARY.format("เพิ่มกฎส่วนลด")],
-        columns=[
-            {"label": "กฎ"},
-            {"label": "ลูกค้า"},
-            {"label": "หมวดสินค้า"},
-            {"label": "ผู้ขาย"},
-            {"label": "ส่วนลด", "num": True},
-            {"label": "ช่วงเวลา"},
-        ],
-        rows=[
-            [main_cell("DSC-0001", "ลำดับความสำคัญ 1", "tag"), "<td>ระดับ A ทั้งหมด</td>", "<td>หนังสือเรียน</td>",
-             "<td>ทุกผู้ขาย</td>", '<td data-num class="pb-num">35.00%</td>', "<td>ตลอดปี 2569</td>"],
-            [main_cell("DSC-0002", "ลำดับความสำคัญ 2", "tag"), "<td>ระดับ A ทั้งหมด</td>", "<td>เครื่องเขียน</td>",
-             "<td>ทุกผู้ขาย</td>", '<td data-num class="pb-num">28.00%</td>', "<td>ตลอดปี 2569</td>"],
-            [main_cell("DSC-0014", "ลำดับความสำคัญ 1", "tag"), "<td>ศึกษาภัณฑ์ นครปฐม</td>", "<td>หนังสือเรียน</td>",
-             "<td>สนพ. อมรินทร์</td>", '<td data-num class="pb-num">40.00%</td>', "<td>1 พ.ค. – 30 ก.ย. 2569</td>"],
-            [main_cell("DSC-0027", "ลำดับความสำคัญ 3", "tag"), "<td>ระดับ B ทั้งหมด</td>", "<td>ทุกหมวด</td>",
-             "<td>ทุกผู้ขาย</td>", '<td data-num class="pb-num">22.00%</td>', "<td>ตลอดปี 2569</td>"],
-            [main_cell("DSC-0031", "ลำดับความสำคัญ 2", "tag"), "<td>สหกรณ์ทั้งหมด</td>", "<td>หนังสือทั่วไป</td>",
-             "<td>สนพ. นานมีบุ๊คส์</td>", '<td data-num class="pb-num">18.00%</td>', "<td>1 ส.ค. – 31 ต.ค. 2569</td>"],
-        ],
-    )
-)
-
 # -------------------------------------------------------------------- users
 PAGES.append(
     dict(
