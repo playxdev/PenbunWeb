@@ -9,15 +9,21 @@
  *
  *   1. localStorage["penbun.apiBase"]         per-browser override (QA)
  *   2. <meta name="penbun-api-base" content>  per-deployment override
- *   3. localhost / 127.0.0.1                  DEV_ORIGIN  + /api/v2
- *   4. anything else                          PROD_ORIGIN + /api/v2
+ *   3. USE_PROD ? PROD_ORIGIN : DEV_ORIGIN    + /api/v2
  *
- * To move the API, edit PROD_ORIGIN below — it is the single place the
- * deployed front end learns where the API lives. The front end is on
- * Cloudflare Pages and the API is on DigitalOcean, so they are different
- * origins; a same-origin guess would only ever resolve to the Pages domain,
- * which serves no API. Whatever PROD_ORIGIN points at must list the Pages
- * domain in the API's CORS_ORIGINS or every request fails preflight.
+ * USE_PROD is the one line to flip when switching the whole front end
+ * between the deployed API and a local one, and it applies everywhere —
+ * the hostname is not consulted, so a page opened on localhost talks to
+ * whichever API USE_PROD names.
+ *
+ * That cuts both ways: with USE_PROD on, developing against localhost
+ * reads and writes the production database. Saving a record from a local
+ * page is a real production write. Flip USE_PROD to false, or use the
+ * per-browser override below, before touching anything that mutates.
+ *
+ * The front end is on Cloudflare Pages and the API is on DigitalOcean, so
+ * they are different origins; whatever PROD_ORIGIN points at must list the
+ * Pages domain in the API's CORS_ORIGINS or every request fails preflight.
  *
  * The prefix is `/api/v2` because that is what `main.go` actually mounts
  * (`app.Group("/api/v2", …)`). PenbunAPI's README calls it v4; the router is
@@ -28,6 +34,9 @@ const OVERRIDE_KEY = "penbun.apiBase";
 const API_PREFIX = "/api/v2";
 const DEV_ORIGIN = "http://localhost:8089";
 const PROD_ORIGIN = "https://starfish-app-zrucf.ondigitalocean.app";
+
+/** true = ทุกที่ยิง PROD_ORIGIN · false = ทุกที่ยิง DEV_ORIGIN */
+const USE_PROD = true;
 
 function trimSlash(u: string): string {
   return u.replace(/\/+$/, "");
@@ -48,14 +57,9 @@ function fromMeta(): string | null {
   return v ? trimSlash(v) : null;
 }
 
-function isLocal(): boolean {
-  const h = location.hostname;
-  return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h === "::1";
-}
-
 /** Absolute base URL, with no trailing slash. */
 export function apiBase(): string {
-  return fromStorage() ?? fromMeta() ?? (isLocal() ? DEV_ORIGIN : PROD_ORIGIN) + API_PREFIX;
+  return fromStorage() ?? fromMeta() ?? (USE_PROD ? PROD_ORIGIN : DEV_ORIGIN) + API_PREFIX;
 }
 
 /** Point this browser at another API. Pass null to go back to the default. */

@@ -138,14 +138,14 @@ console.log("# auth / tokens / api");
   const AUTH = await mod("../public/assets/js/core/auth.js");
 
   /* config */
-  check("apiBase defaults to the dev API on localhost", CFG.apiBase() === "http://localhost:8089/api/v2", CFG.apiBase());
+  const fallback = CFG.apiBase();
+  check("apiBase is absolute and ends at the API prefix", /^https?:\/\/[^/]+\/api\/v2$/.test(fallback), fallback);
   globalThis.location.hostname = "penbunweb.pages.dev";
-  check("apiBase off localhost is absolute, not same origin", /^https:\/\/.+\/api\/v2$/.test(CFG.apiBase()), CFG.apiBase());
-  const prod = CFG.apiBase();
+  check("apiBase ignores the hostname — USE_PROD decides", CFG.apiBase() === fallback, CFG.apiBase());
   CFG.setApiBase("https://api.example.com/api/v2/");
   check("apiBase override wins and drops trailing slash", CFG.apiBase() === "https://api.example.com/api/v2", CFG.apiBase());
   CFG.setApiBase(null);
-  check("apiBase override cleared", CFG.apiBase() === prod, CFG.apiBase());
+  check("apiBase override cleared", CFG.apiBase() === fallback, CFG.apiBase());
   globalThis.location.hostname = "localhost";
   check("apiBase and setApiBase reachable from the console", typeof globalThis.window?.penbun?.setApiBase === "function", String(globalThis.window?.penbun));
 
@@ -237,10 +237,14 @@ console.log("# api pipeline (stubbed fetch)");
   };
   globalThis.document = { querySelector: () => null };
   globalThis.location = { hostname: "localhost", pathname: "/dashboard.html", search: "" };
+  globalThis.window = globalThis;
 
+  const CFG2 = await mod("../public/assets/js/core/config.js");
   const T = await mod("../public/assets/js/core/tokens.js");
   const A = await mod("../public/assets/js/core/api.js");
   const AUTH = await mod("../public/assets/js/core/auth.js");
+  // ยืนยันเส้นทาง ไม่ใช่ origin — origin มาจาก USE_PROD ซึ่งเปลี่ยนได้ตามการตั้งค่า
+  const BASE = CFG2.apiBase();
 
   const realFetch = globalThis.fetch;
   let calls = [];
@@ -276,7 +280,7 @@ console.log("# api pipeline (stubbed fetch)");
   /* login */
   reset(() => envelope(pair(1)));
   const s1 = await AUTH.signIn("  jack  ", "penbun1");
-  check("login posts to /auth/login", calls[0].url === "http://localhost:8089/api/v2/auth/login", calls[0].url);
+  check("login posts to /auth/login", calls[0].url === BASE + "/auth/login", calls[0].url);
   check("login uses POST", calls[0].init.method === "POST");
   check("login sends the credentials verbatim", calls[0].init.body === JSON.stringify({ username: "  jack  ", password: "penbun1" }), calls[0].init.body);
   check("login sends no bearer", calls[0].init.headers.Authorization === undefined);
@@ -492,6 +496,8 @@ console.log("# master requests (stubbed fetch)");
   };
   globalThis.document = { querySelector: () => null };
   globalThis.location = { hostname: "localhost", pathname: "/warehouses.html", search: "" };
+  globalThis.window = globalThis;
+  const BASE3 = (await mod("../public/assets/js/core/config.js")).apiBase();
 
   const T = await mod("../public/assets/js/core/tokens.js");
   const REPO = await mod("../public/assets/js/master/repo.js");
@@ -525,7 +531,7 @@ console.log("# master requests (stubbed fetch)");
   reset();
   await REPO.listRows(wh, { page: 2, limit: 25, q: "ศูนย์", sort: "code", asc: true,
     isActive: true, filters: { warehouse_type: "DC", province: "" } });
-  check("list hits the resource path", calls[0].url.startsWith("http://localhost:8089/api/v2/warehouse?"), calls[0].url);
+  check("list hits the resource path", calls[0].url.startsWith(BASE3 + "/warehouse?"), calls[0].url);
   check("page and limit are sent", query().get("page") === "2" && query().get("limit") === "25");
   check("search goes to the API as q", query().get("q") === "ศูนย์");
   check("ascending sort has no minus", query().get("sort") === "code");
