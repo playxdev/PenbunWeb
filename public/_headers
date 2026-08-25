@@ -1,11 +1,13 @@
 # Security headers and cache policy for Cloudflare Pages.
 #
 # connect-src must list the PenbunAPI origin, or the browser blocks every
-# call from core/api.ts. 'self' alone is enough only when the API is served
-# from this same origin (a proxy or a Pages Function in front of it).
-# Otherwise append it, for example:
+# call from core/api.ts before CORS is even consulted. The API is on
+# DigitalOcean and this app is on Pages, so 'self' alone is never enough —
+# it would only cover an API served from the Pages domain itself.
 #
-#   connect-src 'self' https://api.penbun.example
+# The origin below must stay in step with PROD_ORIGIN in
+# src/ts/core/config.ts. Changing one without the other breaks every
+# deployed request, and the error names CSP rather than the mismatch.
 #
 # Local development does not read this file — tools/serve.mjs sends no CSP —
 # so a missing origin here surfaces for the first time on a deployed build.
@@ -15,7 +17,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://starfish-app-zrucf.ondigitalocean.app; base-uri 'self'; form-action 'self'
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate

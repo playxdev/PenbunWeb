@@ -679,5 +679,22 @@ if (!process.argv.includes("--no-server")) {
   }
 }
 
+/* ------------------------------------------------ CSP ↔ config.ts origin */
+// public/_headers and config.ts each name the API origin, and nothing links
+// them. Getting them out of step breaks every deployed request while local
+// development stays green, because tools/serve.mjs sends no CSP at all.
+console.log("# csp ↔ api origin");
+{
+  const headers = readFileSync(new URL("../public/_headers", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../src/ts/core/config.ts", import.meta.url), "utf8");
+
+  const prod = config.match(/const PROD_ORIGIN = "([^"]+)"/)?.[1];
+  check("config.ts declares PROD_ORIGIN", Boolean(prod), String(prod));
+
+  const csp = headers.match(/Content-Security-Policy:.*/)?.[0] ?? "";
+  const connect = csp.match(/connect-src ([^;]+)/)?.[1] ?? "";
+  check("CSP allows the API origin in connect-src", prod ? connect.includes(prod) : false, connect.trim());
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
