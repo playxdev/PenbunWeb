@@ -9,17 +9,20 @@
  *
  *   1. localStorage["penbun.apiBase"]         per-browser override (QA)
  *   2. <meta name="penbun-api-base" content>  per-deployment override
- *   3. USE_PROD ? PROD_ORIGIN : DEV_ORIGIN    + /api/v2
+ *   3. API_TARGET                             + /api/v2
  *
- * USE_PROD is the one line to flip when switching the whole front end
- * between the deployed API and a local one, and it applies everywhere —
- * the hostname is not consulted, so a page opened on localhost talks to
- * whichever API USE_PROD names.
+ * API_TARGET is the one line to edit, and "auto" is the answer almost
+ * every day: a page served from localhost gets the local API, anything
+ * else gets the deployed one. That is not a convenience, it is the guard
+ * rail — under "prod" a page opened on localhost reads and writes the
+ * production database, so saving a record while developing is a real
+ * production write.
  *
- * That cuts both ways: with USE_PROD on, developing against localhost
- * reads and writes the production database. Saving a record from a local
- * page is a real production write. Flip USE_PROD to false, or use the
- * per-browser override below, before touching anything that mutates.
+ * Set it to "prod" or "dev" deliberately and briefly: "prod" to reproduce
+ * something against real data, "dev" to point a deployed preview at an API
+ * on your machine. For one tab rather than the whole build, prefer the
+ * console override at the bottom of this file, which leaves no edit to
+ * forget to revert.
  *
  * The front end is on Cloudflare Pages and the API is on DigitalOcean, so
  * they are different origins; whatever PROD_ORIGIN points at must list the
@@ -35,8 +38,23 @@ const API_PREFIX = "/api/v2";
 const DEV_ORIGIN = "http://localhost:8089";
 const PROD_ORIGIN = "https://starfish-app-zrucf.ondigitalocean.app";
 
-/** true = ทุกที่ยิง PROD_ORIGIN · false = ทุกที่ยิง DEV_ORIGIN */
-const USE_PROD = true;
+/**
+ * "auto" = localhost ยิง DEV_ORIGIN ที่เหลือยิง PROD_ORIGIN  ← ค่าปกติ
+ * "prod" = ทุกที่ยิง PROD_ORIGIN (localhost ก็เขียน production ด้วย)
+ * "dev"  = ทุกที่ยิง DEV_ORIGIN
+ */
+const API_TARGET: "auto" | "prod" | "dev" = "auto";
+
+function isLocalHost(): boolean {
+  const h = location.hostname;
+  return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h === "::1";
+}
+
+function targetOrigin(): string {
+  if (API_TARGET === "prod") return PROD_ORIGIN;
+  if (API_TARGET === "dev") return DEV_ORIGIN;
+  return isLocalHost() ? DEV_ORIGIN : PROD_ORIGIN;
+}
 
 function trimSlash(u: string): string {
   return u.replace(/\/+$/, "");
@@ -59,7 +77,7 @@ function fromMeta(): string | null {
 
 /** Absolute base URL, with no trailing slash. */
 export function apiBase(): string {
-  return fromStorage() ?? fromMeta() ?? (USE_PROD ? PROD_ORIGIN : DEV_ORIGIN) + API_PREFIX;
+  return fromStorage() ?? fromMeta() ?? targetOrigin() + API_PREFIX;
 }
 
 /** Point this browser at another API. Pass null to go back to the default. */

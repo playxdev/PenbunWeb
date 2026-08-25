@@ -138,14 +138,17 @@ console.log("# auth / tokens / api");
   const AUTH = await mod("../public/assets/js/core/auth.js");
 
   /* config */
-  const fallback = CFG.apiBase();
-  check("apiBase is absolute and ends at the API prefix", /^https?:\/\/[^/]+\/api\/v2$/.test(fallback), fallback);
+  // ค่าปกติคือ "auto" — เทสต์ยืนยันพฤติกรรมนั้น ถ้าตั้งเป็น prod/dev ค่อยข้ามสองข้อแรก
+  const localBase = CFG.apiBase();
   globalThis.location.hostname = "penbunweb.pages.dev";
-  check("apiBase ignores the hostname — USE_PROD decides", CFG.apiBase() === fallback, CFG.apiBase());
+  const remoteBase = CFG.apiBase();
+  check("apiBase is absolute and ends at the API prefix", /^https?:\/\/[^/]+\/api\/v2$/.test(remoteBase), remoteBase);
+  check("auto keeps localhost on the dev API", localBase === "http://localhost:8089/api/v2", localBase);
+  check("auto sends everything else to the deployed API", remoteBase.startsWith("https://") && remoteBase !== localBase, remoteBase);
   CFG.setApiBase("https://api.example.com/api/v2/");
   check("apiBase override wins and drops trailing slash", CFG.apiBase() === "https://api.example.com/api/v2", CFG.apiBase());
   CFG.setApiBase(null);
-  check("apiBase override cleared", CFG.apiBase() === fallback, CFG.apiBase());
+  check("apiBase override cleared", CFG.apiBase() === remoteBase, CFG.apiBase());
   globalThis.location.hostname = "localhost";
   check("apiBase and setApiBase reachable from the console", typeof globalThis.window?.penbun?.setApiBase === "function", String(globalThis.window?.penbun));
 
