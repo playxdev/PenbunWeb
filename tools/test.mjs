@@ -115,8 +115,10 @@ check("em dash → null", cell("—") === null);
 check("lone minus → null", cell("-") === null);
 
 /* --------------------------------------------------- auth · tokens · api */
-// These modules run in a browser; give them the two globals they touch.
-// Every read happens inside a function, so shimming before the calls is enough.
+// These modules run in a browser; give them the globals they touch.
+// Every read happens inside a function, so shimming before the calls is enough
+// — except `window`, which config.js writes to as it loads, so it has to exist
+// before the import below rather than before the first call.
 console.log("# auth / tokens / api");
 {
   const mem = new Map();
@@ -128,6 +130,7 @@ console.log("# auth / tokens / api");
   };
   globalThis.document = { querySelector: () => null };
   globalThis.location = { hostname: "localhost", pathname: "/dashboard.html", search: "" };
+  globalThis.window = globalThis;
 
   const CFG = await mod("../public/assets/js/core/config.js");
   const T = await mod("../public/assets/js/core/tokens.js");
@@ -137,12 +140,14 @@ console.log("# auth / tokens / api");
   /* config */
   check("apiBase defaults to the dev API on localhost", CFG.apiBase() === "http://localhost:8089/api/v2", CFG.apiBase());
   globalThis.location.hostname = "penbunweb.pages.dev";
-  check("apiBase falls back to same origin", CFG.apiBase() === "/api/v2", CFG.apiBase());
+  check("apiBase off localhost is absolute, not same origin", /^https:\/\/.+\/api\/v2$/.test(CFG.apiBase()), CFG.apiBase());
+  const prod = CFG.apiBase();
   CFG.setApiBase("https://api.example.com/api/v2/");
   check("apiBase override wins and drops trailing slash", CFG.apiBase() === "https://api.example.com/api/v2", CFG.apiBase());
   CFG.setApiBase(null);
-  check("apiBase override cleared", CFG.apiBase() === "/api/v2", CFG.apiBase());
+  check("apiBase override cleared", CFG.apiBase() === prod, CFG.apiBase());
   globalThis.location.hostname = "localhost";
+  check("apiBase and setApiBase reachable from the console", typeof globalThis.window?.penbun?.setApiBase === "function", String(globalThis.window?.penbun));
 
   /* tokens */
   const pair = {

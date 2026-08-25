@@ -9,8 +9,15 @@
  *
  *   1. localStorage["penbun.apiBase"]         per-browser override (QA)
  *   2. <meta name="penbun-api-base" content>  per-deployment override
- *   3. localhost / 127.0.0.1                  http://localhost:8089/api/v2
- *   4. anything else                          same origin + /api/v2
+ *   3. localhost / 127.0.0.1                  DEV_ORIGIN  + /api/v2
+ *   4. anything else                          PROD_ORIGIN + /api/v2
+ *
+ * To move the API, edit PROD_ORIGIN below — it is the single place the
+ * deployed front end learns where the API lives. The front end is on
+ * Cloudflare Pages and the API is on DigitalOcean, so they are different
+ * origins; a same-origin guess would only ever resolve to the Pages domain,
+ * which serves no API. Whatever PROD_ORIGIN points at must list the Pages
+ * domain in the API's CORS_ORIGINS or every request fails preflight.
  *
  * The prefix is `/api/v2` because that is what `main.go` actually mounts
  * (`app.Group("/api/v2", …)`). PenbunAPI's README calls it v4; the router is
@@ -20,6 +27,7 @@
 const OVERRIDE_KEY = "penbun.apiBase";
 const API_PREFIX = "/api/v2";
 const DEV_ORIGIN = "http://localhost:8089";
+const PROD_ORIGIN = "https://starfish-app-zrucf.ondigitalocean.app";
 
 function trimSlash(u: string): string {
   return u.replace(/\/+$/, "");
@@ -45,9 +53,9 @@ function isLocal(): boolean {
   return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h === "::1";
 }
 
-/** Absolute or origin-relative base URL, with no trailing slash. */
+/** Absolute base URL, with no trailing slash. */
 export function apiBase(): string {
-  return fromStorage() ?? fromMeta() ?? (isLocal() ? DEV_ORIGIN + API_PREFIX : API_PREFIX);
+  return fromStorage() ?? fromMeta() ?? (isLocal() ? DEV_ORIGIN : PROD_ORIGIN) + API_PREFIX;
 }
 
 /** Point this browser at another API. Pass null to go back to the default. */
@@ -59,3 +67,22 @@ export function setApiBase(url: string | null): void {
     /* private mode — the default stays in effect */
   }
 }
+
+/**
+ * Reach the two functions above from the browser console.
+ *
+ * Without this the override is only callable from module code, which makes
+ * the QA path — point this tab at the other API and reload — impossible to
+ * use for anyone who is not editing source. Reads as:
+ *
+ *   penbun.apiBase()                              what am I talking to?
+ *   penbun.setApiBase("http://localhost:8089/api/v2")
+ *   penbun.setApiBase(null)                       back to the default
+ */
+declare global {
+  interface Window {
+    penbun?: { apiBase: typeof apiBase; setApiBase: typeof setApiBase };
+  }
+}
+
+if (typeof window !== "undefined") window.penbun = { apiBase, setApiBase };
