@@ -43,18 +43,42 @@ The base URL is resolved at runtime by `src/ts/core/config.ts`, so one build wor
 
 | Priority | Source | Use |
 |---|---|---|
-| 1 | `localStorage["penbun.apiBase"]` | Per-browser override — `setApiBase("https://…")` |
+| 1 | `localStorage["penbun.apiBase"]` | Per-browser override — `penbun.setApiBase("https://…")` |
 | 2 | `<meta name="penbun-api-base" content="…">` | Per-deployment override |
-| 3 | Host is `localhost`/`127.0.0.1` | `http://localhost:8089/api/v2` |
-| 4 | Anything else | Same origin + `/api/v2` |
+| 3 | `API_TARGET` in `config.ts` | `"auto"` (default), `"prod"`, or `"dev"` |
+
+`API_TARGET` is the one line to edit, and `"auto"` is the answer almost every day:
+
+| `API_TARGET` | Served from localhost | Served from anywhere else |
+|---|---|---|
+| `"auto"` | `http://localhost:8089/api/v2` | `PROD_ORIGIN` + `/api/v2` |
+| `"prod"` | `PROD_ORIGIN` + `/api/v2` | `PROD_ORIGIN` + `/api/v2` |
+| `"dev"` | `http://localhost:8089/api/v2` | `http://localhost:8089/api/v2` |
+
+`"auto"` is the guard rail, not just a convenience: under `"prod"` a page opened on
+localhost reads and writes the production database, so saving a record while developing
+is a real production write. Set `"prod"` or `"dev"` deliberately and briefly.
+
+To switch one tab instead of the whole build, use the console — it leaves no edit to
+forget to revert:
+
+```js
+penbun.apiBase()                                     // what am I talking to?
+penbun.setApiBase("http://localhost:8089/api/v2")    // this tab only
+penbun.setApiBase(null)                              // back to API_TARGET
+```
 
 The prefix is `/api/v2` because that is what `main.go` mounts. PenbunAPI's README calls it v4;
 the router is the contract.
 
-Two settings must match or every request fails before it starts:
+Three settings must agree or every request fails before it starts:
 
-- PenbunAPI `CORS_ORIGINS` must list this app's origin — add `http://localhost:4173` for `npm run dev`.
-- `public/_headers` `connect-src` must list the API origin for deployed builds.
+- PenbunAPI `CORS_ORIGINS` must list this app's origin — the Pages domain for deployed
+  builds, plus `http://localhost:4173` for `npm run dev`.
+- `public/_headers` `connect-src` must list the API origin, or the browser blocks the
+  request before CORS is even consulted. `npm test` fails if it drifts from `PROD_ORIGIN`.
+- `PROD_ORIGIN` in `config.ts` is where the API actually lives. Moving the API means
+  editing it and `public/_headers` together.
 
 ---
 
@@ -267,8 +291,10 @@ Cloudflare runs `npm install` and the build in its own sandbox, then serves only
 - `public/404.html` — automatic Pages 404 page.
 - Extensionless URLs such as `/dashboard` are mapped to `.html` by Pages.
 
-When connecting PenbunAPI, add its origin to `connect-src` in `public/_headers`, for example:
-`connect-src 'self' https://api.penbun.example`.
+`connect-src` in `public/_headers` already lists the PenbunAPI origin, and `npm test`
+fails if it stops matching `PROD_ORIGIN` in `src/ts/core/config.ts`. Move the API and
+both have to change together — local development never notices, because
+`tools/serve.mjs` sends no CSP at all.
 
 ---
 
