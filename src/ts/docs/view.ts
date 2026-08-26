@@ -307,6 +307,7 @@ export function editorShell(s: DocSpec, state: EditorState): string {
     <div class="pb-pagehead__actions" id="pb-doc-actions">${editorActions(s, status, creating)}</div>
   </div>
 
+  <div class="pb-doc-editor">
   <span class="pb-error pb-hide" data-form-error></span>
 
   <div class="pb-card">
@@ -329,5 +330,6 @@ export function editorShell(s: DocSpec, state: EditorState): string {
     </div>
     <div class="pb-tablewrap" id="pb-doc-items">${itemsBlock}</div>
     ${totalsFoot(header)}
+  </div>
   </div>`;
 }
