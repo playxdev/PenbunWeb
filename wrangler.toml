@@ -1,5 +1,13 @@
 # Cloudflare Pages — static deploy config for PenbunWeb.
-# `public/` is the whole deployable artifact; no Functions, no bindings.
+#
+# `dist/` is the deployable artifact, not `public/`. They differ in one way:
+# dist puts every module under assets/js/<hash>/ and points the HTML there, so
+# a deploy can never be half-applied in a browser that still holds part of the
+# previous one. See tools/dist.mjs.
+#
+# Git Integration reads its own build settings from the Pages dashboard —
+# "Build output directory" has to say `dist` there too, or the deployment
+# serves the unhashed public/ instead. This file governs `npm run deploy`.
 name = "penbunweb"
 compatibility_date = "2026-01-01"
-pages_build_output_dir = "./public"
+pages_build_output_dir = "./dist"

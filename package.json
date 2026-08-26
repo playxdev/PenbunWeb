@@ -5,14 +5,14 @@
   "description": "PenbunWeb — HTML + CSS + TypeScript front end for Penbun System (UI beta, no API yet)",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node tools/dist.mjs",
     "gen:master": "npm run build && node tools/gen_master_pages.mjs",
     "watch": "tsc -p tsconfig.json --watch",
     "serve": "node tools/serve.mjs",
     "dev": "npm run build && npm run serve",
-    "preview": "npm run build && npx wrangler pages dev public",
+    "preview": "npm run build && npx wrangler pages dev dist",
     "deploy": "npm run build && npx wrangler pages deploy",
-    "clean": "rm -rf public/assets/js",
+    "clean": "rm -rf public/assets/js dist",
     "test": "npm run build && node tools/test.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

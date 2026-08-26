@@ -322,7 +322,7 @@ npm run deploy
 | Field | Value |
 |---|---|
 | Build command | `npm run build` |
-| Build output directory | `public` |
+| Build output directory | `dist` |
 | Node version | `20` (read automatically from `.nvmrc`) |
 
 Cloudflare runs `npm install` and the build in its own sandbox, then serves only `public/`.
@@ -341,17 +341,34 @@ both have to change together — local development never notices, because
 
 ### Caching and deploys
 
-No file under `assets/js` or `assets/css` carries a content hash — `main.js` is `main.js` in
-every build — so both revalidate on every load (`max-age=0, must-revalidate`) and answer 304
-when nothing changed. Give them a lifetime and a returning visitor keeps running the previous
-deploy: the HTML is fresh, the code behind it is not, and the page renders its own loading state
-forever because the old bundle does not know the new route. `npm test` holds the policy in place.
+`npm run build` writes two things: `public/assets/js/` (plain paths, what `tools/serve.mjs`
+serves during development) and **`dist/`, which is what gets deployed**. They differ in one way —
+dist puts every module under `assets/js/<hash>/` and stamps the HTML to point there.
 
-**A Cloudflare zone in front of Pages can override all of it.** Browser Cache TTL rewrites
-`Cache-Control` on anything the edge caches; its default of 4 hours is what `www.phenbun.com`
-served while `penbunweb-1kq.pages.dev` — the same deployment with no zone in front — served
-3600 from this file. Set the zone's Caching → Configuration → Browser Cache TTL to **Respect
-Existing Headers**, or `_headers` is advisory only and every deploy is invisible for four hours.
+That is not an optimisation, it is the only reliable way to apply a deploy. Modules are cached
+by URL and each one expires on its own clock, so a browser can hold half of one build and half
+of another. It does not degrade politely:
+
+```
+SyntaxError: The requested module '../master/form.js'
+does not provide an export named 'fillRefSelects'
+```
+
+A fresh `docs/page.js` had loaded beside a four-hour-old `master/form.js`. With a hashed
+directory the whole graph moves together — relative imports resolve inside it — so a browser
+either has the build or it does not. The HTML naming the directory is revalidated on every load,
+which is the one thing Pages guarantees.
+
+`Cache-Control` cannot be relied on for this. A Cloudflare zone in front of Pages rewrites it:
+Browser Cache TTL defaults to 4 hours, and that is what `www.phenbun.com` served while
+`penbunweb-1kq.pages.dev` — the same deployment with no zone in front — served what
+`public/_headers` asks for. Setting the zone to **Respect Existing Headers** is still worth
+doing, but nothing depends on it any more.
+
+**Git Integration needs its own setting.** The Pages dashboard keeps its own build config, so
+*Build output directory* has to say `dist` there as well; `wrangler.toml` only governs
+`npm run deploy`. Until it does, deployments serve the unhashed `public/`, which works but
+brings the old behaviour with it.
 
 ---
 

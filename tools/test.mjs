@@ -1026,5 +1026,69 @@ console.log("# document requests (stubbed fetch)");
   globalThis.fetch = realFetch3;
 }
 
+/* ------------------------------------------------------------ dist bundle */
+// The deployable copy puts every module under assets/js/<hash>/ so a browser
+// cannot mix two builds. That failure was not theoretical: a fresh
+// docs/page.js loaded beside a four-hour-old master/form.js and the page died
+// on "does not provide an export named 'fillRefSelects'". Half a deploy is
+// not a working program.
+console.log("# dist bundle");
+{
+  const distDir = new URL("../dist/", import.meta.url);
+  const jsRoot = new URL("assets/js/", distDir);
+
+  let builds = [];
+  try {
+    builds = readdirSync(jsRoot);
+  } catch {
+    /* handled by the check below */
+  }
+  check("dist has exactly one build directory", builds.length === 1, builds.join(",") || "none");
+
+  if (builds.length === 1) {
+    const build = builds[0];
+    check("build id is a content hash", /^[0-9a-f]{10}$/.test(build), build);
+
+    const pages = readdirSync(distDir).filter((f) => f.endsWith(".html"));
+    check("dist carries every page", pages.length === readdirSync(new URL("../public/", import.meta.url)).filter((f) => f.endsWith(".html")).length);
+
+    // Every page must point into the hashed directory — one that does not is
+    // the whole bug back again, on that page only.
+    for (const page of pages) {
+      const html = readFileSync(new URL(page, distDir), "utf8");
+      const refs = [...html.matchAll(/src="(\/assets\/js\/[^"]+)"/g)].map((m) => m[1]);
+      check(`${page} references the hashed build`, refs.every((r) => r.startsWith(`/assets/js/${build}/`)), refs.join(" "));
+      for (const ref of refs) {
+        const onDisk = new URL("." + ref, distDir);
+        let ok = true;
+        try {
+          readFileSync(onDisk);
+        } catch {
+          ok = false;
+        }
+        check(`${page} → ${ref} exists`, ok);
+      }
+    }
+
+    // Source maps would publish the TypeScript sources alongside the site.
+    const shipped = [];
+    const walk = (dir, base = dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const next = new URL(entry.name + (entry.isDirectory() ? "/" : ""), dir);
+        if (entry.isDirectory()) walk(next, base);
+        else shipped.push(decodeURIComponent(next.pathname.slice(base.pathname.length)));
+      }
+    };
+    walk(new URL(`${build}/`, jsRoot));
+    check("dist ships no source maps", !shipped.some((f) => f.endsWith(".map")), shipped.filter((f) => f.endsWith(".map")).join(","));
+    check("dist ships the entry points",
+      shipped.includes("main.js") && shipped.includes("standalone.js"), shipped.length + " files");
+
+    // public/ is the source and must stay unstamped, or development breaks.
+    const srcHtml = readFileSync(new URL("../public/dashboard.html", import.meta.url), "utf8");
+    check("public/ keeps the plain path", srcHtml.includes('src="/assets/js/main.js"'));
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
