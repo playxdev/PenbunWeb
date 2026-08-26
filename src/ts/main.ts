@@ -49,15 +49,24 @@ async function boot(): Promise<void> {
     const { initMasterHub } = await import("./master/hub.js");
     initMasterHub();
   } else {
-    // Master screens are declared, not written: one descriptor in
-    // master/resources.ts mirrors one PenbunAPI resource and produces the
-    // whole list + form. Pages that are not master data fall through and keep
-    // whatever static markup they ship with.
-    const { masterForPage } = await import("./master/resources.js");
-    const resource = masterForPage(page);
-    if (resource) {
-      const { initMasterPage } = await import("./master/page.js");
-      await initMasterPage(resource, user);
+    // Document screens are declared the same way, from docs/resources.ts —
+    // one descriptor per spec in PenbunAPI's document engine.
+    const { docForPage } = await import("./docs/resources.js");
+    const doc = docForPage(page);
+    if (doc) {
+      const { initDocPage } = await import("./docs/page.js");
+      await initDocPage(doc, user);
+    } else {
+      // Master screens are declared, not written: one descriptor in
+      // master/resources.ts mirrors one PenbunAPI resource and produces the
+      // whole list + form. Pages that are neither fall through and keep
+      // whatever static markup they ship with.
+      const { masterForPage } = await import("./master/resources.js");
+      const resource = masterForPage(page);
+      if (resource) {
+        const { initMasterPage } = await import("./master/page.js");
+        await initMasterPage(resource, user);
+      }
     }
   }
 
@@ -73,7 +82,7 @@ async function boot(): Promise<void> {
           `PenbunWeb ${WEB_VERSION}`,
           user.demo
             ? "โหมดสาธิต ไม่ได้เชื่อมต่อ PenbunAPI"
-            : "ข้อมูลพื้นฐานอ่านและบันทึกผ่าน PenbunAPI แล้ว หน้าเอกสารและสต็อกยังเป็นตัวอย่าง",
+            : "ข้อมูลพื้นฐานและใบรับสินค้าอ่านและบันทึกผ่าน PenbunAPI แล้ว เอกสารอีกสามชนิดและสต็อกยังเป็นตัวอย่าง",
           "info",
           6000
         ),
