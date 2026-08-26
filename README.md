@@ -206,7 +206,7 @@ and reports. These still read `mock.ts`.
 | ใบส่งหนังสือ · ใบรับคืน · ใบส่งคืนคู่ค้า | `doc-order.html`, `doc-return.html`, `doc-vendor-return.html` | Open — same engine, one descriptor each, plus the rule each carries |
 | Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
 | Users | `users.html` | Blocked — PenbunAPI exposes only `PUT /users/{id}/unlock`; there is no user CRUD |
-| Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v7 has none |
+| Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v8 still has none |
 | Enum options | `src/ts/core/enums.ts` | **Done** — `GET /meta/enums`; the arrays in `master/resources.ts` are now only a fallback |
 | Version number | `settings.html`, “About system” | **Done** — `GET /version`, plus `WEB_VERSION` in `core/version.ts` |
 
@@ -389,4 +389,4 @@ See `../PENBUN-TODO.md` for what remains across PenbunSQL, PenbunAPI and PenbunW
 
 ---
 
-Penbun System · PenbunWeb beta 1.3.0 · PenbunAPI v4.0.0 · PenbunSQL v7.0.0
+Penbun System · PenbunWeb beta 1.3.0 · PenbunAPI v4.0.0 · PenbunSQL v8.0.0
