@@ -129,7 +129,7 @@ const find = <T extends { th: string; en: string }>(list: readonly T[], name: un
 const PLACEHOLDER: Record<"province" | "district" | "sub_district", string> = {
   province: "เลือกจังหวัด",
   district: "เลือกจังหวัดก่อน",
-  sub_district: "เลือกอำเภอก่อน",
+  sub_district: "เลือกอำเภอ/เขตก่อน",
 };
 
 /**
