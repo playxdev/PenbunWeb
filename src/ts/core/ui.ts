@@ -74,6 +74,65 @@ export function toast(title: string, message = "", kind: ToastKind = "info", ttl
 }
 
 /* ---------------------------------------------------------------- modal */
+/**
+ * A yes/no dialog. Destructive and irreversible actions never happen on a
+ * single click.
+ *
+ * `bodyHtml` is markup because every caller has something specific to say —
+ * which row, which stock movement, what cannot be undone — and saying it
+ * plainly is the whole point of stopping the user here.
+ */
+export interface ConfirmOptions {
+  title: string;
+  bodyHtml: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  danger?: boolean;
+}
+
+export function confirmDialog(opts: ConfirmOptions): Promise<boolean> {
+  const host = document.createElement("div");
+  host.className = "pb-modal";
+  host.innerHTML = `<div class="pb-modal__panel" role="alertdialog" aria-modal="true"
+      aria-labelledby="pb-confirm-title">
+    <div class="pb-modal__head">
+      <h2 class="pb-modal__title" id="pb-confirm-title">${esc(opts.title)}</h2>
+      <button class="pb-iconbtn pb-iconbtn--sm" type="button" data-close aria-label="ปิด">${icon("x")}</button>
+    </div>
+    <div class="pb-modal__body">${opts.bodyHtml}</div>
+    <div class="pb-modal__foot">
+      <button class="pb-btn pb-btn--secondary" type="button" data-close>${esc(
+        opts.cancelLabel ?? "ยกเลิก"
+      )}</button>
+      <button class="pb-btn ${opts.danger ? "pb-btn--danger" : "pb-btn--primary"}" type="button"
+              data-confirm>${esc(opts.confirmLabel)}</button>
+    </div>
+  </div>`;
+
+  document.body.appendChild(host);
+  requestAnimationFrame(() => {
+    host.classList.add("is-open");
+    host.querySelector<HTMLElement>("[data-confirm]")?.focus();
+  });
+
+  return new Promise<boolean>((resolve) => {
+    const close = (ok: boolean): void => {
+      document.removeEventListener("keydown", onKey);
+      host.remove();
+      resolve(ok);
+    };
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") close(false);
+    };
+    document.addEventListener("keydown", onKey);
+    host.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => close(false)));
+    host.querySelector("[data-confirm]")!.addEventListener("click", () => close(true));
+    host.addEventListener("click", (e) => {
+      if (e.target === host) close(false);
+    });
+  });
+}
+
 export function initModals(): void {
   document.addEventListener("click", (e) => {
     const t = e.target as HTMLElement;

@@ -14,51 +14,20 @@
 
 import { icon } from "../core/icons.js";
 import { values as enumOptions } from "../core/enums.js";
-import { date, esc, money, pct, qty } from "../core/format.js";
+import { esc } from "../core/format.js";
+import { BLANK, cellValue, demoState as demoBlock, isBlank, NUMERIC_KINDS, skeletonBody } from "../core/table.js";
 import type { Column, MasterResource } from "./schema.js";
 import { writable } from "./schema.js";
 
-const BLANK = "—";
-
-const isBlank = (v: unknown): boolean => v === null || v === undefined || v === "";
+// Cells, pagination and the error state moved to core/table.ts when the
+// document engine turned out to need exactly the same ones. They are
+// re-exported here because this is where the rest of the app already reaches
+// for them, and because a master screen should not have to know they moved.
+export { errorState, footSummary, pageWindow, pagination } from "../core/table.js";
 
 /** Row identity as the API knows it — the value every write puts in the URL. */
 export const rowId = (r: MasterResource, row: Record<string, unknown>): string =>
   String(row[r.idKey] ?? "");
-
-/* ------------------------------------------------------------------ cells */
-
-function badge(text: string, tone: string): string {
-  return `<span class="pb-badge pb-badge--${tone}">${esc(text)}</span>`;
-}
-
-function cellValue(col: Column, raw: unknown): string {
-  const blank = col.blank ?? BLANK;
-  if (isBlank(raw)) return `<span class="pb-muted">${esc(blank)}</span>`;
-
-  switch (col.kind) {
-    case "money":
-      return esc(money(Number(raw)));
-    case "qty":
-      return esc(qty(Number(raw)));
-    case "percent":
-      return esc(pct(Number(raw)));
-    case "date":
-      return esc(date(String(raw)));
-    case "bool": {
-      const on = raw === true || raw === 1 || raw === "1";
-      const label = col.labels?.[String(raw)] ?? (on ? "ใช่" : "ไม่");
-      if (label === BLANK) return `<span class="pb-muted">${BLANK}</span>`;
-      return badge(label, on ? (col.tone ?? "pos") : "muted");
-    }
-    case "badge":
-      return badge(col.labels?.[String(raw)] ?? String(raw), col.tone ?? "muted");
-    case "code":
-      return `<span class="pb-mono">${esc(raw)}</span>`;
-    default:
-      return esc(raw);
-  }
-}
 
 /** The leading column: name on top, business ID and context underneath. */
 function identityCell(r: MasterResource, col: Column, row: Record<string, unknown>): string {
@@ -76,8 +45,7 @@ function identityCell(r: MasterResource, col: Column, row: Record<string, unknow
 
 function cell(r: MasterResource, col: Column, row: Record<string, unknown>, first: boolean): string {
   if (first) return identityCell(r, col, row);
-  const numeric = col.kind === "money" || col.kind === "qty" || col.kind === "percent";
-  const attrs = numeric ? ' data-num class="pb-num"' : "";
+  const attrs = NUMERIC_KINDS.has(col.kind ?? "") ? ' data-num class="pb-num"' : "";
   return `<td${attrs}>${cellValue(col, row[col.key])}</td>`;
 }
 
@@ -86,8 +54,7 @@ function cell(r: MasterResource, col: Column, row: Record<string, unknown>, firs
 export function tableHead(r: MasterResource, sort: string | undefined, asc: boolean): string {
   const cols = r.columns
     .map((c, i) => {
-      const numeric = c.kind === "money" || c.kind === "qty" || c.kind === "percent";
-      const num = numeric && i > 0 ? " data-num" : "";
+      const num = NUMERIC_KINDS.has(c.kind ?? "") && i > 0 ? " data-num" : "";
       if (!c.sort) return `<th${num}>${esc(c.label)}</th>`;
       // The ↑/↓ marker comes from `.pb-table th[aria-sort]::after` in
       // 04-components.css — the same one the client-side tables use.
@@ -122,15 +89,7 @@ export function tableBody(r: MasterResource, rows: Array<Record<string, unknown>
 
 const colCount = (r: MasterResource): number => r.columns.length + (writable(r) ? 1 : 0);
 
-export function skeletonRows(r: MasterResource, count = 6): string {
-  const widths = ["70%", "45%", "55%", "40%", "60%", "35%", "50%", "45%", "30%"];
-  const row = (i: number) =>
-    `<tr>${Array.from({ length: colCount(r) }, (_, c) => {
-      const w = widths[(i + c) % widths.length];
-      return `<td><span class="pb-skeleton" style="display:block;height:14px;width:${w}"></span></td>`;
-    }).join("")}</tr>`;
-  return `<tbody>${Array.from({ length: count }, (_, i) => row(i)).join("")}</tbody>`;
-}
+export const skeletonRows = (r: MasterResource, count = 6): string => skeletonBody(colCount(r), count);
 
 /* ----------------------------------------------------------------- states */
 
@@ -152,61 +111,7 @@ export function emptyState(r: MasterResource, filtered: boolean): string {
   </div>`;
 }
 
-/** Error states name the cause and the next action — never just "ผิดพลาด". */
-export function errorState(message: string, traceId = ""): string {
-  const ref = traceId
-    ? `<p class="pb-empty__text"><span class="pb-mono">รหัสอ้างอิง ${esc(traceId)}</span></p>`
-    : "";
-  return `<div class="pb-empty">
-    <span class="pb-empty__icon">${icon("alert")}</span>
-    <div class="pb-empty__title">โหลดข้อมูลไม่สำเร็จ</div>
-    <p class="pb-empty__text">${esc(message)}</p>
-    ${ref}
-    <button class="pb-btn pb-btn--secondary pb-btn--sm" type="button" data-act="retry">ลองใหม่</button>
-  </div>`;
-}
-
-export function demoState(r: MasterResource): string {
-  return `<div class="pb-empty">
-    <span class="pb-empty__icon">${icon("monitor")}</span>
-    <div class="pb-empty__title">โหมดสาธิตไม่ได้เชื่อมต่อ PenbunAPI</div>
-    <p class="pb-empty__text">หน้า${esc(r.label)}อ่านข้อมูลจริงจาก PenbunAPI เท่านั้น
-      ออกจากโหมดสาธิตแล้วเข้าสู่ระบบด้วยบัญชีจริงเพื่อดูและแก้ไขข้อมูล</p>
-    <a class="pb-btn pb-btn--secondary pb-btn--sm" href="/index.html">ไปหน้าเข้าสู่ระบบ</a>
-  </div>`;
-}
-
-/* ------------------------------------------------------------- pagination */
-
-/** A window of at most five page numbers, always including the current one. */
-export function pageWindow(page: number, totalPages: number, span = 5): number[] {
-  if (totalPages <= 1) return [1];
-  const half = Math.floor(span / 2);
-  let start = Math.max(1, page - half);
-  const end = Math.min(totalPages, start + span - 1);
-  start = Math.max(1, end - span + 1);
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-}
-
-export function pagination(page: number, totalPages: number): string {
-  if (totalPages <= 1) return "";
-  const btn = (n: number) =>
-    `<button type="button" data-page="${n}"${n === page ? ' aria-current="true"' : ""}>${n}</button>`;
-  const prev = `<button type="button" data-page="${page - 1}" aria-label="หน้าก่อนหน้า"${
-    page <= 1 ? " disabled" : ""
-  }>‹</button>`;
-  const next = `<button type="button" data-page="${page + 1}" aria-label="หน้าถัดไป"${
-    page >= totalPages ? " disabled" : ""
-  }>›</button>`;
-  return `<nav class="pb-pagination" aria-label="แบ่งหน้า">${prev}${pageWindow(page, totalPages)
-    .map(btn)
-    .join("")}${next}</nav>`;
-}
-
-export function footSummary(shown: number, total: number, label: string): string {
-  if (total === 0) return `ไม่พบ${esc(label)}`;
-  return `แสดง ${qty(shown)} จาก ${qty(total)} รายการ`;
-}
+export const demoState = (r: MasterResource): string => demoBlock(r.label, r.icon);
 
 /* ---------------------------------------------------------------- toolbar */
 

@@ -20,81 +20,13 @@
  */
 
 import type { IconName } from "../core/icons.js";
+import type { Field, FilterDef, Ref } from "../core/schema.js";
 
-/** Mirrors schema.Kind. Decides both the input control and the cell format. */
-export type Kind = "string" | "int" | "decimal" | "bool" | "date";
-
-/** A column the client may write. Mirrors schema.Field. */
-export interface Field {
-  /** JSON key sent to the API. */
-  name: string;
-  kind: Kind;
-  label: string;
-  /** Required on create. Update is always partial. */
-  required?: boolean;
-  /** Settable on create, rejected afterwards — the input is disabled on edit. */
-  noUpdate?: boolean;
-  maxLen?: number;
-  /** Renders a <select>; the values must match the CHECK constraint. */
-  enumValues?: readonly string[];
-  /**
-   * Key into `GET /meta/enums` (`<table without tb_>_<column>`). When the
-   * endpoint answers, its list wins and `enumValues` is only the fallback —
-   * see core/enums.ts.
-   */
-  enumKey?: string;
-  /** Thai labels for enumValues, keyed by value. */
-  enumLabels?: Readonly<Record<string, string>>;
-  min?: number;
-  hint?: string;
-  /** Render as a textarea rather than a single-line input. */
-  multiline?: boolean;
-  /** Field spans both form columns. */
-  wide?: boolean;
-}
-
-/** A foreign key the client sends as a business ID. Mirrors schema.Ref. */
-export interface Ref {
-  /** JSON key, e.g. "customer_type_id". */
-  field: string;
-  /** Name of the master resource the options come from. */
-  resource: string;
-  label: string;
-  required?: boolean;
-  noUpdate?: boolean;
-  /**
-   * Tables that outgrow a <select>. The API caps `limit` at 200, so anything
-   * that can exceed that gets a search box with suggestions instead of a list
-   * that silently stops at row 200.
-   */
-  big?: boolean;
-  hint?: string;
-  wide?: boolean;
-}
-
-/** A query parameter the list endpoint accepts. Mirrors schema.Filter. */
-export interface FilterDef {
-  param: string;
-  label: string;
-  /** Options come from another master resource. */
-  resource?: string;
-  /** Fixed options — value plus Thai label. */
-  options?: ReadonlyArray<{ value: string; label: string }>;
-  /**
-   * Same contract as Field.enumKey: the live list decides the options and
-   * `options` becomes the fallback. Labels come from `enumLabels`, because
-   * the endpoint answers with codes only.
-   */
-  enumKey?: string;
-  enumLabels?: Readonly<Record<string, string>>;
-  /** No options at all: a free-text box (province, issue_no). */
-  free?: boolean;
-  /**
-   * The source table can exceed the API's 200-row cap, so the control is a
-   * search box with suggestions instead of a list that quietly stops short.
-   */
-  big?: boolean;
-}
+// Kind, Field, Ref and FilterDef live in core/schema.ts: PenbunAPI keeps them
+// in `internal/schema`, shared by the CRUD engine and the document engine, and
+// this side needs them in both places for the same reason. They are re-exported
+// here so a master descriptor still reads as one import.
+export type { Field, FilterDef, Kind, Ref } from "../core/schema.js";
 
 /** How one cell of the list table is rendered. */
 export type CellKind =

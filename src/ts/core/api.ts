@@ -51,6 +51,12 @@ export const CODE = {
   ACCOUNT_LOCKED: "ACCOUNT_LOCKED",
   NOT_FOUND: "NOT_FOUND",
   BUSINESS_RULE: "BUSINESS_RULE",
+  /** Posting: someone posted this document first. */
+  ALREADY_POSTED: "ALREADY_POSTED",
+  /** Posting: the document cannot be honoured — and no stock moved. */
+  INSUFFICIENT_STOCK: "INSUFFICIENT_STOCK",
+  /** A delete refused because another row still points at this one. */
+  REF_IN_USE: "REF_IN_USE",
   INTERNAL: "INTERNAL",
   DB_UNAVAILABLE: "DB_UNAVAILABLE",
   /** Client-side only: the request never reached the API. */
