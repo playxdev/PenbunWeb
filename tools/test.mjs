@@ -952,6 +952,21 @@ console.log("# document view");
   check("new document says totals come later", creating.includes("ยอดรวมจะคำนวณเมื่อบันทึก"));
 }
 
+// The app shell names the screen with data-page on #pb-page itself, so a
+// delegated handler that asks for a bare [data-page] matches every click on
+// the page. That is not theoretical: it swallowed the create button and every
+// row on the document list, and re-ran the query with page=NaN.
+console.log("# document click targets");
+{
+  const src = readFileSync(new URL("../src/ts/docs/page.ts", import.meta.url), "utf8");
+  check("pagination selector is scoped to the pagination bar",
+    src.includes('.pb-pagination button[data-page]'));
+  check("no bare [data-page] selector survives", !/closest<[^>]*>\("\[data-page\]"\)/.test(src));
+
+  const master = readFileSync(new URL("../src/ts/master/page.ts", import.meta.url), "utf8");
+  check("master screens scope it the same way", master.includes('.pb-pagination button[data-page]'));
+}
+
 console.log("# document requests (stubbed fetch)");
 {
   const REPO2 = await mod("../public/assets/js/docs/repo.js");

@@ -287,10 +287,18 @@ class DocScreen {
     root.addEventListener("click", (e) => {
       const t = e.target as HTMLElement;
 
-      const pager = t.closest<HTMLElement>("[data-page]");
+      // Scoped to the pagination bar on purpose. The app shell puts
+      // data-page on #pb-page itself to name the screen, so a bare
+      // [data-page] matches every click anywhere on the page — which
+      // swallowed the create button and every row, and re-ran the list with
+      // page=NaN instead.
+      const pager = t.closest<HTMLElement>(".pb-pagination button[data-page]");
       if (pager && !pager.hasAttribute("disabled")) {
-        this.list.page = Number(pager.dataset.page);
-        void this.loadList();
+        const to = Number(pager.dataset.page);
+        if (Number.isFinite(to) && to > 0) {
+          this.list.page = to;
+          void this.loadList();
+        }
         return;
       }
 
