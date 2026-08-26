@@ -36,7 +36,7 @@ Other commands:
 | `npm run deploy` | Build and upload `public/` to Cloudflare Pages |
 | `npm run gen:master` | Build, then write one HTML file per master resource from the registry |
 | `python3 tools/gen_pages.py` | Generate the remaining mock list/error pages from the shared template |
-| `node tools/gen_thai_address.mjs` | Rebuild the Thai address tables in `public/assets/data/th` |
+| `node tools/gen_thai_address.mjs` | Rebuild the Thai address tables in `public/assets/data/th` (`--src DIR` · `--sql DIR` · `--no-sql`) |
 
 **Sign in:** a real PenbunAPI account. `POST /auth/login` issues the token pair.
 Click **ดู UI แบบสาธิต** to browse the screens with no API running — that session never calls the API.
@@ -274,9 +274,20 @@ sent. PenbunAPI is unchanged and knows nothing about it.
 ```text
 core/address.ts                  the three lists, the matching rules, the cascade
 core/schema.ts   Field.address   marks a field as one step of it (presentation only)
-tools/gen_thai_address.mjs       builds the tables from playxdev/iHapWeb data/raw
-public/assets/data/th/           77 + 928 + 7,452 rows, 624 KB, committed
+tools/gen_thai_address.mjs       merges the sources and splits them per province
+tools/address-overrides.json     Bangkok's 180 แขวง, and why the sources are wrong
+public/assets/data/th/           77 + 928 + 7,465 rows, 625 KB, committed
 ```
+
+**Three sources, because none of them is complete.** `playxdev/iHapWeb data/raw` is the base and
+the newest (refreshed 2025). The 2021 phpMyAdmin dump in `../docs/post/*.sql` fills 12 rows the
+base lost, nine of them in Bangkok, and never overrides it. Both predate the 2560/2564 splits —
+บางนา into two แขวง, บางบอน into four, และอีกหลายเขต — and both still list แขวง that were
+transferred to another เขต years ago, so Bangkok would ship 170 แขวง where the announcements say
+180. `tools/address-overrides.json` carries all 180 with their official codes and replaces
+province 1 wholesale; it names its own sources, and marks the twelve zip codes taken from the
+เขต rather than from a source row (every Bangkok เขต has exactly one). The generator refuses to
+write anything if a province ends up empty, a zip is not five digits, or an id appears twice.
 
 The tables are static files, not an endpoint: `provinces.json` is 4 KB and loads once,
 `province/<id>.json` is ~8 KB and arrives when a province is picked — after which the อำเภอ list,

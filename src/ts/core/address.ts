@@ -111,10 +111,17 @@ export const sameName = (a: unknown, b: unknown): boolean => {
   return left !== "" && left === normalizeName(b);
 };
 
-const find = <T extends { th: string; en: string }>(list: readonly T[], name: unknown): T | undefined =>
-  list.find((item) => item.th === name) ??
-  list.find((item) => sameName(item.th, name)) ??
-  list.find((item) => item.en.toLowerCase() === String(name ?? "").trim().toLowerCase());
+const find = <T extends { th: string; en: string }>(list: readonly T[], name: unknown): T | undefined => {
+  const wanted = String(name ?? "").trim();
+  // Nothing matches nothing: some rows carry an empty English name, and an
+  // empty search would otherwise "find" the first of them.
+  if (wanted === "") return undefined;
+  return (
+    list.find((item) => item.th === wanted) ??
+    list.find((item) => sameName(item.th, wanted)) ??
+    list.find((item) => item.en.toLowerCase() === wanted.toLowerCase())
+  );
+};
 
 /* ------------------------------------------------------------- rendering */
 

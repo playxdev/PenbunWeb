@@ -607,6 +607,7 @@ console.log("# address (จังหวัด → อำเภอ/เขต → 
 
   let districts = 0;
   let subs = 0;
+  const ids = new Set();
   const holes = [];
   for (const p of index) {
     let tree;
@@ -625,13 +626,28 @@ console.log("# address (จังหวัด → อำเภอ/เขต → 
       // an อำเภอ and the ตำบล list below it is empty.
       if (d.subDistricts.length === 0) holes.push(`${p.th}/${d.th}: no sub-district`);
       for (const s of d.subDistricts) {
+        ids.add(s.id);
         if (!/^\d{5}$/.test(s.zip)) holes.push(`${p.th}/${d.th}/${s.th}: zip ${s.zip}`);
       }
     }
   }
   check("every province file is present and whole", holes.length === 0, holes.slice(0, 3).join(" · "));
+  check("no sub-district id appears twice", ids.size === subs, `${ids.size} ids for ${subs} rows`);
   check("the tables carry every district", districts === 928, String(districts));
-  check("the tables carry every sub-district", subs === 7452, String(subs));
+  check("the tables carry every sub-district", subs === 7465, String(subs));
+
+  // Bangkok is the province the source dumps get wrong: both predate the
+  // 2560/2564 splits and both still list แขวง that moved to another เขต.
+  const bkk = JSON.parse(readFileSync(new URL("assets/data/th/province/1.json", PUBLIC), "utf8"));
+  const khwaeng = bkk.districts.flatMap((d) => d.subDistricts.map((s) => `${d.th}/${s.th}`));
+  check("กรุงเทพมหานคร has 50 เขต", bkk.districts.length === 50, String(bkk.districts.length));
+  check("กรุงเทพมหานคร has all 180 แขวง", khwaeng.length === 180, String(khwaeng.length));
+  for (const name of ["เขตบางนา/บางนาเหนือ", "เขตบางบอน/คลองบางพราน", "เขตสวนหลวง/พัฒนาการ", "เขตวังทองหลาง/พลับพลา"]) {
+    check(`the splits are in: ${name}`, khwaeng.includes(name));
+  }
+  for (const gone of ["เขตบางนา/บางนา", "เขตบางบอน/บางบอน", "เขตบึงกุ่ม/สะพานสูง", "เขตคลองเตย/พระโขนงเหนือ"]) {
+    check(`what was abolished is out: ${gone}`, !khwaeng.includes(gone));
+  }
 
   /* Matching what is already in the row. */
   const A = await mod("../public/assets/js/core/address.js");
