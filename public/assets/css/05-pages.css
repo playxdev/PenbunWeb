@@ -368,6 +368,15 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--pb-4);
 }
+/* A document header uses <fieldset> so one `disabled` locks every control at
+   once when the document is no longer a draft. The browser's default frame
+   and its min-content sizing rule have no place in a grid, so both go. */
+fieldset.pb-formgrid {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
 .pb-formgrid .pb-field + .pb-field { margin-top: 0; }
 .pb-field--wide { grid-column: 1 / -1; }
 @media (max-width: 720px) {
