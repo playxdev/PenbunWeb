@@ -5,6 +5,7 @@
   "description": "PenbunWeb — HTML + CSS + TypeScript front end for Penbun System (UI beta, no API yet)",
   "type": "module",
   "scripts": {
+    "prebuild": "node -e \"require('node:fs').rmSync('public/assets/js',{recursive:true,force:true})\"",
     "build": "tsc -p tsconfig.json && node tools/dist.mjs",
     "gen:master": "npm run build && node tools/gen_master_pages.mjs",
     "watch": "tsc -p tsconfig.json --watch",
