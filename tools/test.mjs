@@ -392,9 +392,9 @@ console.log("# master registry");
 {
   const R = await mod("../public/assets/js/master/resources.js");
 
-  check("registry holds all 18 resources", R.MASTERS.length === 18, R.MASTERS.length);
-  check("page ids are unique", new Set(R.MASTERS.map((m) => m.page)).size === 18);
-  check("resource names are unique", new Set(R.MASTERS.map((m) => m.name)).size === 18);
+  check("registry holds all 20 resources", R.MASTERS.length === 20, R.MASTERS.length);
+  check("page ids are unique", new Set(R.MASTERS.map((m) => m.page)).size === R.MASTERS.length);
+  check("resource names are unique", new Set(R.MASTERS.map((m) => m.name)).size === R.MASTERS.length);
 
   for (const m of R.MASTERS) {
     check(`${m.name}: idKey set`, typeof m.idKey === "string" && m.idKey.length > 0);

@@ -1,7 +1,7 @@
 /**
  * master/hub.ts — the index of every master-data screen.
  *
- * Eighteen tables do not belong in the sidebar; the ones used daily
+ * Twenty tables do not belong in the sidebar; the ones used daily
  * (สินค้า · คลัง · คู่ค้า · ลูกค้า · ส่วนลด · สาย) keep their own menu entry
  * and the rest are reached from here. The list is read from the registry, so
  * a new descriptor shows up without this file changing.

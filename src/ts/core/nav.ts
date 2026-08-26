@@ -62,7 +62,8 @@ export const NAV: NavGroup[] = [
     items: [
       { id: "vendors", label: "ผู้ขาย / สำนักพิมพ์", href: "/vendors.html", icon: "store" },
       { id: "customers", label: "ลูกค้า / ร้านค้า", href: "/customers.html", icon: "users" },
-      { id: "discounts", label: "โครงสร้างส่วนลด", href: "/discounts.html", icon: "tag" },
+      { id: "discounts", label: "แคมเปญส่วนลด", href: "/discounts.html", icon: "tag" },
+      { id: "price-rules", label: "กฎส่วนลด", href: "/price-rules.html", icon: "ledger" },
     ],
   },
   {
@@ -78,7 +79,7 @@ export const NAV: NavGroup[] = [
 /**
  * Screens reached from the ข้อมูลพื้นฐาน hub rather than the sidebar.
  *
- * Eighteen master tables would drown the menu, so only the ones touched daily
+ * Twenty master tables would drown the menu, so only the ones touched daily
  * get a menu entry. These still belong to the shell and still need a title,
  * so they are listed here and folded into NAV_INDEX below.
  */
@@ -87,6 +88,7 @@ export const HUB_ITEMS: NavItem[] = [
   { id: "customer-types", label: "ประเภทลูกค้า", href: "/customer-types.html", icon: "userPlus" },
   { id: "vendor-types", label: "ประเภทคู่ค้า", href: "/vendor-types.html", icon: "briefcase" },
   { id: "discount-types", label: "ประเภทส่วนลด", href: "/discount-types.html", icon: "percent" },
+  { id: "discount-groups", label: "กลุ่มส่วนลด", href: "/discount-groups.html", icon: "percent" },
   { id: "product-categories", label: "หมวดสินค้า", href: "/product-categories.html", icon: "folder" },
   { id: "product-groups", label: "กลุ่มสินค้า", href: "/product-groups.html", icon: "apps" },
   { id: "product-formats", label: "รูปแบบสินค้า", href: "/product-formats.html", icon: "copy" },

@@ -4,7 +4,7 @@ Front end for **Penbun System**, a wholesale and distribution system for books a
 Built with **pure HTML + CSS + TypeScript**, with no framework and no runtime dependency.
 
 > **Scope of this release:** look and feel plus UX/UI, **real authentication**, and
-> **all 18 master-data screens reading and writing PenbunAPI for real**.
+> **all 20 master-data screens reading and writing PenbunAPI for real**.
 > Sign-in, sign-out, token refresh and the forced first password change talk to PenbunAPI;
 > so do product, SKU, book, warehouse, route, vendor, customer, discount and every reference table.
 > Documents, stock, consignment, allocation and reports are still sample data from `src/ts/data/mock.ts`.
@@ -92,7 +92,7 @@ penbunweb/
 │  ├─ stock.html · movements.html · transfers.html      ← still mock data
 │  ├─ doc-receive.html · doc-order.html · doc-return.html · doc-vendor-return.html
 │  ├─ consignment.html · allocation.html · users.html · reports.html
-│  ├─ master.html            ← hub for the 18 master screens
+│  ├─ master.html            ← hub for the 20 master screens
 │  ├─ products.html · books.html · product-skus.html · warehouses.html
 │  ├─ routes.html · customer-routes.html · vendors.html · customers.html · discounts.html
 │  ├─ company.html · customer-types.html · vendor-types.html · discount-types.html
@@ -178,7 +178,7 @@ step on the same page, because PenbunAPI blocks every other route until it is do
 
 **Dashboard** — four KPI cards, the **route rail** (signature element), sales trend chart, stock mix donut, recent documents, today’s activity, top-selling products, and below-reorder products.
 
-**Master data (18 screens + hub)** — real CRUD against PenbunAPI. Server-side search,
+**Master data (20 screens + hub)** — real CRUD against PenbunAPI. Server-side search,
 filter, sort and paging; create/edit dialogs generated from the descriptor; soft delete with
 confirmation. See §6.
 
@@ -201,7 +201,7 @@ and reports. These still read `mock.ts`.
 | Token refresh | `src/ts/core/api.ts` → `refreshSession()` | **Done** — single-flight, retried once on `TOKEN_EXPIRED` |
 | Forced first password change | `standalone.ts` + `#pb-changepw` | **Done** — `POST /auth/change-password` |
 | Page protection | `requireSession()` + `validateSession()` | **Done** — instant local guard, then `GET /auth/me` |
-| Master data (18 resources) | `src/ts/master/*` | **Done** — list, create, edit, soft delete against the five CRUD endpoints |
+| Master data (20 resources) | `src/ts/master/*` | **Done** — list, create, edit, soft delete against the five CRUD endpoints |
 | ใบรับสินค้า | `src/ts/docs/*` | **Done** — list, editor, confirm, post, cancel, delete against the nine endpoints |
 | ใบส่งหนังสือ · ใบรับคืน · ใบส่งคืนคู่ค้า | `doc-order.html`, `doc-return.html`, `doc-vendor-return.html` | Open — same engine, one descriptor each, plus the rule each carries |
 | Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
@@ -212,13 +212,13 @@ and reports. These still read `mock.ts`.
 
 ### The master-data engine
 
-PenbunAPI declares its 18 master resources as descriptors and gets five endpoints each from one
+PenbunAPI declares its 20 master resources as descriptors and gets five endpoints each from one
 generic engine. `src/ts/master/` is the same idea on this side: **a master screen is declared,
 not written.**
 
 ```text
 master/schema.ts      Field · Ref · FilterDef · Column · MasterResource   (mirrors internal/schema + internal/crud)
-master/resources.ts   the 18 descriptors, in the order of resources.All()
+master/resources.ts   the 20 descriptors, in the order of resources.All()
 master/repo.ts        the five requests + the ref-option cache
 master/view.ts        table · toolbar · states · pagination  (markup only)
 master/form.ts        the create/edit dialog, built from Field[] and Ref[]
@@ -391,7 +391,7 @@ brings the old behaviour with it.
 
 ## 9. Not in This Release
 
-- PenbunAPI integration beyond `/auth/*`, the 18 master resources and ใบรับสินค้า — the other
+- PenbunAPI integration beyond `/auth/*`, the 20 master resources and ใบรับสินค้า — the other
   three document types, stock, consignment, allocation, user and report screens still read
   `mock.ts`.
 - Reversing a posted document. PenbunAPI has no `reverse` endpoint yet, so no screen offers the

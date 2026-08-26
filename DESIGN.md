@@ -146,7 +146,7 @@ Buttons and results use the same vocabulary: clicking **Post** should produce **
 
 ## 10. Master-Data Screens Are Declared, Not Designed
 
-Eighteen screens in this product are the same screen: a filtered, sorted, paginated table over one
+Twenty screens in this product are the same screen: a filtered, sorted, paginated table over one
 table in the database, with a dialog to add or edit a row. Designing each one separately would produce
 eighteen slightly different tables — different empty states, different column alignment, different
 places to put the delete button. So they share one implementation and one visual contract, and a new
@@ -207,7 +207,7 @@ a permanent sidebar slot but still have to be reachable in one obvious step. The
 
 ### 10.5 Where the Uniformity Breaks
 
-Two known exceptions, both forced by the database rather than chosen:
+Three known exceptions, all forced by the database rather than chosen:
 
 * **การผูกลูกค้ากับสาย** reads `vw_customer_route`, which returns neither `is_active` nor `update_date`.
   The screen therefore has no status filter and no search box, and its descriptor says so with
@@ -216,7 +216,13 @@ Two known exceptions, both forced by the database rather than chosen:
   size. Those inputs open blank when editing an existing row. Until the view is widened, the dialog
   cannot show what it cannot read.
 
-Both are tracked in `../PENBUN-TODO.md` §2.
+* **กฎส่วนลด** has four target fields — กลุ่มส่วนลด, ลูกค้า, สาย, SKU — and `rule_scope` decides
+  which one is required. The form has no conditional fields, so all four show at once and each
+  carries a hint naming the scope it belongs to. The database refuses the wrong combination
+  (`CK_tb_price_rule_target`), so nothing invalid gets saved; the dialog simply asks the user to
+  read rather than showing them only what applies.
+
+The first two are tracked in `../PENBUN-TODO.md` §2, the third in `../DISCOUNT-MODEL.md` §7.
 
 ---
 

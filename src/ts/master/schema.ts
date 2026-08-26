@@ -1,7 +1,7 @@
 /**
  * master/schema.ts — the descriptor vocabulary, mirrored from PenbunAPI.
  *
- * PenbunAPI declares its 18 master resources as descriptors
+ * PenbunAPI declares its 20 master resources as descriptors
  * (`internal/schema/field.go` + `internal/crud/resource.go`) and gets five
  * endpoints each from one generic engine. This file is the front-end half of
  * that same idea: a screen is declared, not written, and one engine

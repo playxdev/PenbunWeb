@@ -1,5 +1,5 @@
 /**
- * master/resources.ts — the 18 master screens, declared once.
+ * master/resources.ts — the 20 master screens, declared once.
  *
  * One entry per descriptor in PenbunAPI `internal/resources/registry.go`,
  * in the same order, so the two files can be read side by side. Adding a
@@ -71,6 +71,22 @@ const ROUTE_TYPE_LABEL: Record<string, string> = {
 export const TRADE_TYPE_KEY = "vendor_trade_type";
 const TRADE_TYPES = ["BUY", "CONSIGN"] as const;
 const TRADE_TYPE_LABEL: Record<string, string> = { BUY: "ซื้อขาด", CONSIGN: "ฝากขาย" };
+
+/**
+ * ขอบเขตของกฎส่วนลด — CK_tb_price_rule_scope ใน PenbunSQL v9 เป็นตัวบังคับ
+ * และ `GET /meta/enums` อ่านค่าจาก constraint นั้นตรง ๆ รายการนี้จึงเป็นแค่ค่าสำรอง
+ * ระหว่างรอคำตอบ เหมือนอีกสามชุดข้างบน
+ */
+export const RULE_SCOPE_KEY = "price_rule_rule_scope";
+const RULE_SCOPES = ["CUSTOMER_SKU", "CUSTOMER", "ROUTE", "GROUP_SKU", "GROUP", "SKU"] as const;
+const RULE_SCOPE_LABEL: Record<string, string> = {
+  CUSTOMER_SKU: "ลูกค้า × สินค้า",
+  CUSTOMER: "ลูกค้ารายตัว",
+  ROUTE: "ทั้งสาย",
+  GROUP_SKU: "กลุ่ม × สินค้า",
+  GROUP: "กลุ่มลูกค้า",
+  SKU: "สินค้าเฉพาะ",
+};
 
 const enumFilter = (
   param: string,
@@ -197,6 +213,35 @@ export const DISCOUNT_TYPE: MasterResource = {
   ],
   fields: [
     { name: "discount_type_name", kind: "string", label: "ชื่อประเภทส่วนลด", required: true, maxLen: 100 },
+    DESC_FIELD,
+  ],
+};
+
+export const DISCOUNT_GROUP: MasterResource = {
+  page: "discount-groups",
+  name: "discount-group",
+  label: "กลุ่มส่วนลด",
+  group: "ข้อมูลพื้นฐาน",
+  subtitle: "กลุ่มที่ลูกค้าสังกัด — กฎส่วนลดชั้นกลุ่มอ้างถึงกลุ่มนี้",
+  icon: "percent",
+  idKey: "discount_group_id",
+  titleKey: "group_name",
+  refMeta: "group_code",
+  audit: true,
+  searchable: true,
+  defaultSort: "name",
+  defaultAsc: true,
+  columns: [
+    { key: "group_name", label: "กลุ่มส่วนลด", sort: "name", meta: "group_code" },
+    { key: "customer_count", label: "ลูกค้าในกลุ่ม", kind: "qty" },
+    { key: "rule_count", label: "กฎส่วนลด", kind: "qty" },
+    { key: "description", label: "คำอธิบาย" },
+    UPDATED_COL,
+    STATUS_COL,
+  ],
+  fields: [
+    { name: "group_code", kind: "string", label: "รหัสกลุ่ม", required: true, maxLen: 20, noUpdate: true },
+    { name: "group_name", kind: "string", label: "ชื่อกลุ่ม", required: true, maxLen: 100 },
     DESC_FIELD,
   ],
 };
@@ -465,7 +510,7 @@ export const CUSTOMER: MasterResource = {
     { key: "customer_name", label: "ลูกค้า", sort: "name", meta: "customer_code" },
     { key: "customer_type_name", label: "ประเภท" },
     { key: "province", label: "จังหวัด" },
-    { key: "discount_group", label: "กลุ่มส่วนลด", kind: "badge", tone: "muted" },
+    { key: "discount_group_name", label: "กลุ่มส่วนลด", kind: "badge", tone: "muted" },
     { key: "credit_limit", label: "วงเงินเครดิต", kind: "money" },
     { key: "credit_term_day", label: "เครดิต (วัน)", kind: "qty" },
     STATUS_COL,
@@ -473,9 +518,12 @@ export const CUSTOMER: MasterResource = {
   filters: [
     { param: "customer_type_id", label: "ประเภทลูกค้า", resource: "customer-type" },
     PROVINCE_FILTER,
-    { param: "discount_group", label: "กลุ่มส่วนลด", free: true },
+    { param: "discount_group_id", label: "กลุ่มส่วนลด", resource: "discount-group" },
   ],
-  refs: [{ field: "customer_type_id", resource: "customer-type", label: "ประเภทลูกค้า", required: true }],
+  refs: [
+    { field: "customer_type_id", resource: "customer-type", label: "ประเภทลูกค้า", required: true },
+    { field: "discount_group_id", resource: "discount-group", label: "กลุ่มส่วนลด" },
+  ],
   fields: [
     { name: "customer_code", kind: "string", label: "รหัสลูกค้า", maxLen: 20 },
     { name: "customer_name", kind: "string", label: "ชื่อลูกค้า", required: true, maxLen: 200, wide: true },
@@ -497,7 +545,6 @@ export const CUSTOMER: MasterResource = {
     { name: "credit_term_day", kind: "int", label: "เครดิต (วัน)" },
     { name: "is_vat", kind: "bool", label: "จด VAT" },
     { name: "invoice_format", kind: "string", label: "รูปแบบใบกำกับ", maxLen: 20 },
-    { name: "discount_group", kind: "string", label: "กลุ่มส่วนลด", maxLen: 20 },
     { name: "note", kind: "string", label: "หมายเหตุ", maxLen: 500, multiline: true, wide: true },
   ],
 };
@@ -544,6 +591,121 @@ export const DISCOUNT: MasterResource = {
     { name: "discount_value", kind: "decimal", label: "มูลค่าส่วนลด", min: 0 },
     { name: "is_percent", kind: "bool", label: "คิดเป็นเปอร์เซ็นต์" },
     { name: "min_order_amount", kind: "decimal", label: "ยอดสั่งซื้อขั้นต่ำ", min: 0 },
+    { name: "start_date", kind: "date", label: "วันที่เริ่มใช้" },
+    { name: "end_date", kind: "date", label: "วันที่สิ้นสุด" },
+    DESC_FIELD,
+  ],
+};
+
+/**
+ * กฎส่วนลด — ตารางที่ตอบว่าร้านหนึ่งจ่ายเท่าไหร่สำหรับหนังสือเล่มหนึ่ง
+ *
+ * `discount` ข้างบนคือแคมเปญ : ส่วนลดที่ประกาศไว้ลอย ๆ ไม่ผูกกับใคร
+ * `price-rule` คือกฎที่ผูกปลายทางจริง และ UFN_RESOLVE_DISCOUNT ในฐานข้อมูล
+ * เป็นตัวเดียวที่รวมชั้นให้ออกมาเป็นตัวเลขเดียว — หน้าจอไม่คำนวณเอง
+ *
+ * ปลายทางทั้งสี่ช่องเป็น optional ทั้งหมดเพราะ scope เป็นตัวตัดสินว่าต้องกรอกช่องไหน
+ * และ CK_tb_price_rule_target ในฐานข้อมูลเป็นผู้บังคับ ไม่ใช่ฟอร์มนี้
+ */
+export const PRICE_RULE: MasterResource = {
+  page: "price-rules",
+  name: "price-rule",
+  label: "กฎส่วนลด",
+  group: "คู่ค้า",
+  subtitle: "ส่วนลดตามลูกค้า กลุ่ม สาย หรือสินค้า — ชั้นที่เจาะจงกว่าทับชั้นที่กว้างกว่า",
+  icon: "ledger",
+  idKey: "price_rule_id",
+  titleKey: "rule_name",
+  refMeta: "rule_code",
+  audit: true,
+  searchable: true,
+  defaultSort: "updated",
+  columns: [
+    { key: "rule_name", label: "กฎส่วนลด", sort: "name", meta: "rule_code" },
+    { key: "rule_scope", label: "ขอบเขต", kind: "badge", tone: "brand", labels: RULE_SCOPE_LABEL },
+    { key: "target_name", label: "ใช้กับ", blank: "—" },
+    { key: "discount_percent", label: "ส่วนลด", kind: "percent" },
+    { key: "net_price", label: "ราคาสุทธิ", kind: "money" },
+    { key: "min_qty", label: "ตั้งแต่ (จำนวน)", kind: "qty" },
+    {
+      key: "is_on_top",
+      label: "การซ้อน",
+      kind: "bool",
+      labels: { "true": "บวกทับ", "false": "ทับชั้นอื่น" },
+    },
+    { key: "start_date", label: "เริ่มใช้", kind: "date" },
+    { key: "end_date", label: "สิ้นสุด", kind: "date", blank: "ไม่กำหนด" },
+    UPDATED_COL,
+    STATUS_COL,
+  ],
+  filters: [
+    enumFilter("rule_scope", "ขอบเขต", RULE_SCOPE_KEY, RULE_SCOPES, RULE_SCOPE_LABEL),
+    { param: "discount_group_id", label: "กลุ่มส่วนลด", resource: "discount-group" },
+    { param: "customer_id", label: "ลูกค้า", resource: "customer", big: true },
+    { param: "route_id", label: "สาย", resource: "route" },
+    { param: "sku_id", label: "SKU", resource: "product-sku", big: true },
+    {
+      param: "is_on_top",
+      label: "การซ้อน",
+      options: [
+        { value: "true", label: "บวกทับ" },
+        { value: "false", label: "ทับชั้นอื่น" },
+      ],
+    },
+  ],
+  refs: [
+    {
+      field: "discount_group_id",
+      resource: "discount-group",
+      label: "กลุ่มส่วนลด",
+      hint: "กรอกเมื่อขอบเขตเป็น กลุ่มลูกค้า หรือ กลุ่ม × สินค้า",
+    },
+    {
+      field: "customer_id",
+      resource: "customer",
+      label: "ลูกค้า",
+      big: true,
+      hint: "กรอกเมื่อขอบเขตเป็น ลูกค้ารายตัว หรือ ลูกค้า × สินค้า",
+    },
+    { field: "route_id", resource: "route", label: "สาย", hint: "กรอกเมื่อขอบเขตเป็น ทั้งสาย" },
+    {
+      field: "sku_id",
+      resource: "product-sku",
+      label: "SKU",
+      big: true,
+      hint: "กรอกเมื่อขอบเขตผูกกับสินค้า",
+    },
+  ],
+  fields: [
+    { name: "rule_code", kind: "string", label: "รหัสกฎ", maxLen: 20, noUpdate: true },
+    { name: "rule_name", kind: "string", label: "ชื่อกฎ", required: true, maxLen: 150, wide: true },
+    {
+      name: "rule_scope",
+      kind: "string",
+      label: "ขอบเขต",
+      required: true,
+      enumKey: RULE_SCOPE_KEY,
+      enumValues: RULE_SCOPES,
+      enumLabels: RULE_SCOPE_LABEL,
+      hint: "ตัดสินว่าต้องกรอกช่องปลายทางช่องไหน",
+    },
+    {
+      name: "discount_percent",
+      kind: "decimal",
+      label: "ส่วนลด (%)",
+      min: 0,
+      hint: "ใส่ได้อย่างใดอย่างหนึ่งกับราคาสุทธิ",
+    },
+    { name: "net_price", kind: "decimal", label: "ราคาสุทธิต่อหน่วย", min: 0 },
+    { name: "min_qty", kind: "int", label: "จำนวนขั้นต่ำ", min: 0, hint: "ขั้นบันได — หนึ่งขั้นหนึ่งกฎ" },
+    { name: "max_qty", kind: "int", label: "จำนวนสูงสุด", min: 0, hint: "เว้นว่าง = ไม่จำกัด" },
+    {
+      name: "is_on_top",
+      kind: "bool",
+      label: "บวกทับส่วนลดชั้นอื่น",
+      hint: "ไม่ติ๊ก = แข่งกับชั้นอื่น ชั้นที่เจาะจงกว่าชนะ",
+    },
+    { name: "priority", kind: "int", label: "ลำดับซ้อน", min: 0, hint: "ใช้ตัดสินเมื่อขอบเขตเท่ากัน มากชนะ" },
     { name: "start_date", kind: "date", label: "วันที่เริ่มใช้" },
     { name: "end_date", kind: "date", label: "วันที่สิ้นสุด" },
     DESC_FIELD,
@@ -857,6 +1019,7 @@ export const MASTERS: MasterResource[] = [
   CUSTOMER_TYPE,
   VENDOR_TYPE,
   DISCOUNT_TYPE,
+  DISCOUNT_GROUP,
   PRODUCT_CATEGORY,
   PRODUCT_FORMAT_TYPE,
   UNIT_TYPE,
@@ -871,6 +1034,7 @@ export const MASTERS: MasterResource[] = [
   PRODUCT,
   PRODUCT_SKU,
   BOOK,
+  PRICE_RULE,
 ];
 
 /** Keyed by `data-page`. */

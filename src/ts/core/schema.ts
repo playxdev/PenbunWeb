@@ -2,7 +2,7 @@
  * core/schema.ts — the field vocabulary, mirrored from PenbunAPI.
  *
  * PenbunAPI keeps these in `internal/schema` and both engines read them: the
- * CRUD engine builds the 18 master resources out of them, and the document
+ * CRUD engine builds the 20 master resources out of them, and the document
  * engine builds a header and its item lines out of the same four types. This
  * file is the front-end half, and it sits in core/ for exactly that reason —
  * a document is not a kind of master resource, and neither should have to
