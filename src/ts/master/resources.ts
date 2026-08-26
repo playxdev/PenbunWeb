@@ -51,8 +51,14 @@ const PROVINCE_FILTER: FilterDef = {
  * รหัสไปรษณีย์ แทนกล่องข้อความเปล่า ๆ ส่วนค่าที่ส่งขึ้น API ยังเป็นสตริงชุดเดิม
  * ทุกประการ — ตัวเลือกมีไว้ให้พิมพ์ผิดยากขึ้น ไม่ได้เปลี่ยนสัญญากับ PenbunAPI
  *
- * คลังสินค้าและบริษัทรับเฉพาะ `province` (ดู internal/resources ฝั่ง API)
- * จึงได้แค่รายชื่อจังหวัด ไม่มีชั้นถัดไปให้เลือก
+ * ลำดับในฟอร์มคือลำดับที่ผู้ใช้เลือก ไม่ใช่ลำดับคอลัมน์ในตาราง — อำเภอเลือกไม่ได้
+ * จนกว่าจะมีจังหวัด ถ้าวางตามคอลัมน์ (ตำบล → อำเภอ → จังหวัด) ช่องสองช่องแรกจะถูกล็อก
+ * อยู่เหนือช่องที่ต้องกรอกก่อน
+ *
+ * ทั้งสี่หน้าจอที่มีที่อยู่ — ลูกค้า · คู่ค้า · บริษัท · คลังสินค้า — ใช้ชุดเดียวกัน
+ * ครบทุกชั้น ตั้งแต่ PenbunSQL v10 เพิ่มสามคอลัมน์ที่หายไปให้ tb_warehouse และ
+ * vw_company คืน sub_district กับ district ที่ตารางมีอยู่แล้ว รันเว็บรุ่นนี้กับ
+ * ฐาน v9 สองหน้านั้นจะบันทึกไม่ผ่าน (Invalid column name)
  */
 const SUB_DISTRICT_FIELD = {
   name: "sub_district",
@@ -184,7 +190,9 @@ export const COMPANY: MasterResource = {
     { name: "branch_name", kind: "string", label: "ชื่อสาขา", maxLen: 100 },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
     PROVINCE_FIELD,
-    { name: "zip_code", kind: "string", label: "รหัสไปรษณีย์", maxLen: 10 },
+    DISTRICT_FIELD,
+    SUB_DISTRICT_FIELD,
+    ZIP_FIELD,
     { name: "phone", kind: "string", label: "โทรศัพท์", maxLen: 30 },
     { name: "email", kind: "string", label: "อีเมล", maxLen: 150 },
     { name: "website", kind: "string", label: "เว็บไซต์", maxLen: 150 },
@@ -441,6 +449,9 @@ export const WAREHOUSE: MasterResource = {
     },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
     PROVINCE_FIELD,
+    DISTRICT_FIELD,
+    SUB_DISTRICT_FIELD,
+    ZIP_FIELD,
     DESC_FIELD,
   ],
 };
@@ -521,9 +532,9 @@ export const VENDOR: MasterResource = {
     { name: "email", kind: "string", label: "อีเมล", maxLen: 150 },
     { name: "website", kind: "string", label: "เว็บไซต์", maxLen: 150 },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
-    SUB_DISTRICT_FIELD,
-    DISTRICT_FIELD,
     PROVINCE_FIELD,
+    DISTRICT_FIELD,
+    SUB_DISTRICT_FIELD,
     ZIP_FIELD,
     { name: "credit_term_day", kind: "int", label: "เครดิต (วัน)" },
     { name: "currency", kind: "string", label: "สกุลเงิน", maxLen: 10 },
@@ -585,9 +596,9 @@ export const CUSTOMER: MasterResource = {
     { name: "email", kind: "string", label: "อีเมล", maxLen: 150 },
     { name: "line_id", kind: "string", label: "LINE ID", maxLen: 50 },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
-    SUB_DISTRICT_FIELD,
-    DISTRICT_FIELD,
     PROVINCE_FIELD,
+    DISTRICT_FIELD,
+    SUB_DISTRICT_FIELD,
     ZIP_FIELD,
     { name: "credit_limit", kind: "decimal", label: "วงเงินเครดิต" },
     { name: "credit_term_day", kind: "int", label: "เครดิต (วัน)" },

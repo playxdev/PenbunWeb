@@ -174,9 +174,11 @@ function locked(sel: HTMLSelectElement, part: "district" | "sub_district"): void
  * "กำลังโหลด…" until this fills them in, the same contract `fillRefSelects`
  * has with a ref picker.
  *
- * A form that carries only `province` (คลังสินค้า, บริษัท — the two whose API
- * descriptors accept no district) gets the province list and nothing else:
- * every step below is skipped when its control is absent.
+ * Every step below the first is skipped when its control is absent, so a form
+ * that carries only `province` still gets its list. Every screen with an
+ * address carries the whole cascade since PenbunSQL v10 gave tb_warehouse the
+ * three columns it was missing: ลูกค้า · คู่ค้า · บริษัท · คลังสินค้า, and the
+ * mock "ข้อมูลองค์กร" card on the settings screen.
  */
 export async function wireAddress(root: HTMLElement): Promise<void> {
   const provinceSel = root.querySelector<HTMLSelectElement>('select[data-address="province"]');

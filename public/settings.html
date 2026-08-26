@@ -75,7 +75,27 @@
             </div></div>
             <div class="pb-col-12"><div class="pb-field">
               <label class="pb-label" for="org-addr">ที่อยู่</label>
-              <textarea class="pb-textarea" id="org-addr">99/12 หมู่ 5 ถนนบางกรวย–ไทรน้อย ตำบลบางบัวทอง อำเภอบางบัวทอง จังหวัดนนทบุรี 11110</textarea>
+              <textarea class="pb-textarea" id="org-addr">99/12 หมู่ 5 ถนนบางกรวย–ไทรน้อย</textarea>
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-province">จังหวัด</label>
+              <select class="pb-select" id="org-province" data-address="province" data-value="นนทบุรี">
+                <option value="">กำลังโหลด…</option></select>
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-district">อำเภอ / เขต</label>
+              <select class="pb-select" id="org-district" data-address="district" data-value="บางบัวทอง">
+                <option value="">กำลังโหลด…</option></select>
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-subdistrict">ตำบล / แขวง</label>
+              <select class="pb-select" id="org-subdistrict" data-address="sub_district" data-value="บางบัวทอง">
+                <option value="">กำลังโหลด…</option></select>
+            </div></div>
+            <div class="pb-col-4"><div class="pb-field">
+              <label class="pb-label" for="org-zip">รหัสไปรษณีย์</label>
+              <input class="pb-input pb-num" id="org-zip" data-address="zip_code" value="11110">
+              <span class="pb-hint">เติมให้เองเมื่อเลือกตำบล/แขวง</span>
             </div></div>
             <div class="pb-col-4"><div class="pb-field">
               <label class="pb-label" for="org-tel">โทรศัพท์</label>

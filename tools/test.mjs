@@ -791,11 +791,13 @@ console.log("# address (จังหวัด → อำเภอ/เขต → 
   const RES = await mod("../public/assets/js/master/resources.js");
   const parts = (name) =>
     RES.MASTER_BY_NAME[name].fields.filter((f) => f.address).map((f) => f.address).join(",");
-  check("ลูกค้า carries the whole cascade", parts("customer") === "sub_district,district,province,zip_code", parts("customer"));
-  check("คู่ค้า carries the whole cascade", parts("vendor") === "sub_district,district,province,zip_code", parts("vendor"));
-  // Neither API descriptor accepts a district, so neither screen pretends to.
-  check("คลังสินค้า picks a จังหวัด only", parts("warehouse") === "province", parts("warehouse"));
-  check("บริษัท picks a จังหวัด only", parts("company") === "province", parts("company"));
+  const MASTER_LABEL = (name) => RES.MASTER_BY_NAME[name].label;
+  // The form order is the order the user fills it in, not the column order:
+  // an อำเภอ cannot be picked before its จังหวัด.
+  const CASCADE = "province,district,sub_district,zip_code";
+  for (const name of ["customer", "vendor", "company", "warehouse"]) {
+    check(`${MASTER_LABEL(name)} carries the whole cascade`, parts(name) === CASCADE, parts(name));
+  }
 
   const provinceField = RES.MASTER_BY_NAME.customer.fields.find((f) => f.name === "province");
   const zipField = RES.MASTER_BY_NAME.customer.fields.find((f) => f.name === "zip_code");

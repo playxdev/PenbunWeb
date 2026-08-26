@@ -12,6 +12,7 @@
  * how the old card came to be wrong.
  */
 
+import { wireAddress } from "../core/address.js";
 import { apiBase } from "../core/config.js";
 import { esc } from "../core/format.js";
 import { fetchApiVersion, WEB_VERSION } from "../core/version.js";
@@ -26,6 +27,11 @@ function set(id: string, html: string): void {
 }
 
 export async function initSettings(user: Session): Promise<void> {
+  // "ข้อมูลองค์กร" is still a mock card — nothing here is saved anywhere. Its
+  // address gets the same picker the master forms use so the two do not
+  // disagree about what an address looks like.
+  void wireAddress(document.body);
+
   set("pb-ver-web", esc(WEB_VERSION));
   set("pb-ver-base", esc(apiBase()));
 

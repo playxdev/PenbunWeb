@@ -286,9 +286,15 @@ second form fetches nothing.
 Three behaviours worth knowing:
 
 - **Marking a field is the whole integration.** `{ name: "province", …, address: "province" }` in
-  `master/resources.ts` turns the box into a select. ลูกค้า and คู่ค้า carry all four steps;
-  คลังสินค้า and บริษัท carry `province` only, because their API descriptors accept nothing below
-  it — the DB columns exist on `tb_company`, the descriptor does not expose them.
+  `master/resources.ts` turns the box into a select. All four screens that hold an address —
+  ลูกค้า · คู่ค้า · บริษัท · คลังสินค้า — carry the whole cascade, and so does the mock
+  “ข้อมูลองค์กร” card on the settings screen. Getting คลังสินค้า there took the other two repos:
+  PenbunSQL v10 gives `tb_warehouse` the `sub_district` · `district` · `zip_code` it never had and
+  has `vw_company` return the two it had all along, and the PenbunAPI descriptors accept them.
+  **This build needs PenbunSQL v10**; against v9 those two screens fail to save with
+  `Invalid column name`.
+- **The form order is the fill order, not the column order.** จังหวัด → อำเภอ → ตำบล → ไปรษณีย์.
+  Declared in column order the first two boxes would sit above the one that unlocks them.
 - **A stored address is matched forgivingly, never overwritten.** Rows written before the picker
   hold what somebody typed: “บางรัก” where the canonical name is “เขตบางรัก”, “จ.นนทบุรี” where it
   is “นนทบุรี”. Prefixes and spaces are ignored when matching, and a value that still matches
