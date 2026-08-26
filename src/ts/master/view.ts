@@ -138,8 +138,11 @@ export function toolbar(r: MasterResource): string {
   const filters = (r.filters ?? [])
     .map((f) => {
       if (f.free || f.big) {
-        const list = f.big ? ` list="pb-filter-list-${esc(f.param)}"` : "";
-        const datalist = f.big ? `<datalist id="pb-filter-list-${esc(f.param)}"></datalist>` : "";
+        // A free box keeps taking free text; a datalist only offers the
+        // canonical spellings beside it — see FilterDef.addressList.
+        const suggests = f.big || f.addressList;
+        const list = suggests ? ` list="pb-filter-list-${esc(f.param)}"` : "";
+        const datalist = suggests ? `<datalist id="pb-filter-list-${esc(f.param)}"></datalist>` : "";
         return `<input class="pb-input pb-filter" type="search" data-filter="${esc(f.param)}"${list}
                        placeholder="${esc(f.label)}" aria-label="กรองตาม${esc(f.label)}" autocomplete="off">${datalist}`;
       }

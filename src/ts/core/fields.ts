@@ -16,6 +16,11 @@
  *   big        a table that can exceed the API's 200-row `limit` cap gets a
  *              search box with suggestions, never a <select> that quietly
  *              stops at row 200.
+ *   address    the field is one step of จังหวัด → อำเภอ → ตำบล → ไปรษณีย์.
+ *              The control is a <select> that starts out empty and says
+ *              "กำลังโหลด…" until `wireAddress` fills it — the same contract
+ *              a ref picker has with `fillRefSelects` — and it still writes a
+ *              plain string, because that is what the column holds.
  *
  * Reading the controls back is the caller's job: a master form sends only
  * what changed, a document sends a whole item list, and the difference is
@@ -54,6 +59,16 @@ export function fieldControl(f: Field, row: Row | undefined, mode: Mode): string
       <span>${esc(f.label)}</span></label>`;
   }
 
+  // The three place names are lists; the ไปรษณีย์ beneath them stays a box,
+  // filled in by the picker but never locked — a row can hold a code the
+  // tables disagree with, and correcting it by hand must remain possible.
+  if (f.address && f.address !== "zip_code") {
+    const current = raw === null || raw === undefined ? "" : String(raw);
+    return `<select class="pb-select" id="${id}" data-field="${esc(f.name)}"
+      data-address="${esc(f.address)}" data-value="${esc(current)}"${disabled}>
+      <option value="">กำลังโหลด…</option></select>`;
+  }
+
   if (f.enumValues?.length) {
     const current = raw === null || raw === undefined ? "" : String(raw);
     // The CHECK constraint decides, not this build — see core/enums.ts.
@@ -87,7 +102,8 @@ export function fieldControl(f: Field, row: Row | undefined, mode: Mode): string
       value="${esc(dateInputValue(raw))}"${disabled}>`;
   }
 
-  return `<input class="pb-input" type="text" id="${id}" data-field="${esc(f.name)}"
+  const address = f.address ? ` data-address="${esc(f.address)}"` : "";
+  return `<input class="pb-input" type="text" id="${id}" data-field="${esc(f.name)}"${address}
     value="${esc(raw ?? "")}"${f.maxLen ? ` maxlength="${f.maxLen}"` : ""} autocomplete="off"${disabled}>`;
 }
 

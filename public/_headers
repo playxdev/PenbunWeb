@@ -50,3 +50,12 @@
 
 /assets/image/*
   Cache-Control: public, max-age=604800
+
+# The Thai address tables (assets/data/th) change when a district is created
+# or renamed — a few times a decade — and a stale copy costs nothing worse
+# than an อำเภอ missing from a list, so they are cached for a day rather than
+# revalidated on every form. A regeneration therefore reaches returning
+# visitors within 24 hours, not instantly.
+
+/assets/data/*
+  Cache-Control: public, max-age=86400

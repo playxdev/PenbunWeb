@@ -594,6 +594,221 @@ console.log("# master requests (stubbed fetch)");
   globalThis.location = { hostname: "localhost", pathname: "/dashboard.html", search: "" };
 }
 
+/* ------------------------------------------------------------ address.ts */
+console.log("# address (จังหวัด → อำเภอ/เขต → ตำบล/แขวง → ไปรษณีย์)");
+{
+  const PUBLIC = new URL("../public/", import.meta.url);
+
+  /* The tables themselves, read straight off disk. */
+  const index = JSON.parse(readFileSync(new URL("assets/data/th/provinces.json", PUBLIC), "utf8"));
+  check("provinces.json holds all 77", index.length === 77, String(index.length));
+  check("provinces.json is sorted by Thai name",
+    index.every((p, i) => i === 0 || index[i - 1].th.localeCompare(p.th, "th") <= 0));
+
+  let districts = 0;
+  let subs = 0;
+  const holes = [];
+  for (const p of index) {
+    let tree;
+    try {
+      tree = JSON.parse(readFileSync(new URL(`assets/data/th/province/${p.id}.json`, PUBLIC), "utf8"));
+    } catch {
+      holes.push(`${p.th}: no file`);
+      continue;
+    }
+    if (tree.th !== p.th) holes.push(`${p.th}: file says ${tree.th}`);
+    if (tree.districts.length === 0) holes.push(`${p.th}: no district`);
+    districts += tree.districts.length;
+    for (const d of tree.districts) {
+      subs += d.subDistricts.length;
+      // A dead end is the one thing the picker cannot survive: the user picks
+      // an อำเภอ and the ตำบล list below it is empty.
+      if (d.subDistricts.length === 0) holes.push(`${p.th}/${d.th}: no sub-district`);
+      for (const s of d.subDistricts) {
+        if (!/^\d{5}$/.test(s.zip)) holes.push(`${p.th}/${d.th}/${s.th}: zip ${s.zip}`);
+      }
+    }
+  }
+  check("every province file is present and whole", holes.length === 0, holes.slice(0, 3).join(" · "));
+  check("the tables carry every district", districts === 928, String(districts));
+  check("the tables carry every sub-district", subs === 7452, String(subs));
+
+  /* Matching what is already in the row. */
+  const A = await mod("../public/assets/js/core/address.js");
+  check("normalizeName strips the เขต prefix", A.normalizeName("เขตบางรัก") === "บางรัก");
+  check("normalizeName strips จ. and spaces", A.normalizeName(" จ. นนทบุรี ") === "นนทบุรี", A.normalizeName(" จ. นนทบุรี "));
+  check("normalizeName tolerates null", A.normalizeName(null) === "");
+  check("sameName sees through a prefix", A.sameName("บางรัก", "เขตบางรัก"));
+  check("sameName keeps two places apart", !A.sameName("บางรัก", "บางกะปิ"));
+  check("sameName says no to empty", !A.sameName("", ""));
+
+  /* The cascade itself, on a DOM small enough to reason about. */
+  const realFetch = globalThis.fetch;
+  let reads = [];
+  globalThis.fetch = async (url) => {
+    reads.push(url);
+    try {
+      const body = readFileSync(new URL("." + url, PUBLIC));
+      return new Response(body, { status: 200, headers: { "content-type": "application/json" } });
+    } catch {
+      return new Response("", { status: 404 });
+    }
+  };
+
+  const optionValues = (html) =>
+    [...html.matchAll(/<option value="([^"]*)"/g)].map((m) =>
+      m[1].replaceAll("&quot;", '"').replaceAll("&#39;", "'").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&")
+    );
+
+  /** Enough of a <select> to be wrong in the same ways a real one is. */
+  class El {
+    constructor(tag, part, value = "") {
+      this.tag = tag;
+      this.dataset = { address: part, value };
+      this.options = tag === "select" ? [] : null;
+      this.disabled = false;
+      this.handlers = [];
+      this.text = "";
+    }
+    set innerHTML(html) {
+      this.text = html;
+      this.options = optionValues(html);
+      this._value = "";
+    }
+    get innerHTML() {
+      return this.text;
+    }
+    insertAdjacentHTML(_where, html) {
+      this.text += html;
+      this.options.push(...optionValues(html));
+    }
+    // A <select> can only hold a value one of its options offers; an <input>
+    // holds whatever it is given. The difference is the whole point of the
+    // "keep a value the list does not know" rule.
+    set value(v) {
+      this._value = this.options === null || this.options.includes(v) ? v : "";
+    }
+    get value() {
+      return this._value ?? "";
+    }
+    addEventListener(type, fn) {
+      if (type === "change") this.handlers.push(fn);
+    }
+    pick(v) {
+      this.value = v;
+      for (const fn of this.handlers) fn();
+    }
+  }
+
+  const form = (stored = {}, parts = ["province", "district", "sub_district", "zip_code"]) => {
+    const els = {};
+    for (const part of parts) {
+      els[part] = new El(part === "zip_code" ? "input" : "select", part, stored[part] ?? "");
+      if (part === "zip_code") els[part].value = stored[part] ?? "";
+    }
+    return {
+      els,
+      querySelector(sel) {
+        const part = /data-address="([a-z_]+)"/.exec(sel)?.[1];
+        const tag = sel.startsWith("input") ? "input" : "select";
+        const el = els[part];
+        return el && el.tag === tag ? el : null;
+      },
+    };
+  };
+
+  /** The awaits inside a change handler are all on caches that are warm. */
+  const settle = async () => {
+    for (let i = 0; i < 40; i++) await Promise.resolve();
+  };
+
+  /* create: nothing chosen yet */
+  const blank = form();
+  await A.wireAddress(blank);
+  check("จังหวัด offers all 77 plus the placeholder", blank.els.province.options.length === 78,
+    String(blank.els.province.options.length));
+  check("อำเภอ waits on จังหวัด", blank.els.district.disabled === true);
+  check("อำเภอ says what it is waiting for", blank.els.district.innerHTML.includes("เลือกจังหวัดก่อน"));
+  check("ตำบล waits on อำเภอ", blank.els.sub_district.disabled === true);
+
+  /* the walk from the screenshot: กรุงเทพมหานคร → เขตบางรัก → บางรัก → 10500 */
+  blank.els.province.pick("กรุงเทพมหานคร");
+  await settle();
+  check("อำเภอ unlocks once จังหวัด is picked", blank.els.district.disabled === false);
+  check("อำเภอ lists the 50 เขต of Bangkok", blank.els.district.options.length === 51,
+    String(blank.els.district.options.length));
+  check("อำเภอ offers เขตบางรัก", blank.els.district.options.includes("เขตบางรัก"));
+
+  blank.els.district.pick("เขตบางรัก");
+  await settle();
+  check("ตำบล unlocks once อำเภอ is picked", blank.els.sub_district.disabled === false);
+  check("ตำบล offers แขวงบางรัก by its stored name", blank.els.sub_district.options.includes("บางรัก"));
+
+  blank.els.sub_district.pick("บางรัก");
+  await settle();
+  check("ไปรษณีย์ follows the ตำบล", blank.els.zip_code.value === "10500", blank.els.zip_code.value);
+
+  /* re-picking the จังหวัด cannot leave the rest pointing at the old one */
+  blank.els.province.pick("นนทบุรี");
+  await settle();
+  check("a new จังหวัด clears the อำเภอ", blank.els.district.value === "", blank.els.district.value);
+  check("a new จังหวัด clears the ตำบล", blank.els.sub_district.value === "");
+  check("a new จังหวัด clears the ไปรษณีย์", blank.els.zip_code.value === "");
+  check("a new จังหวัด brings its own อำเภอ", blank.els.district.options.includes("ปากเกร็ด"));
+
+  /* edit: a row written before the picker existed */
+  const legacy = form({ province: "กรุงเทพมหานคร", district: "บางรัก", sub_district: "บางรัก", zip_code: "10500" });
+  await A.wireAddress(legacy);
+  check("a stored จังหวัด comes back selected", legacy.els.province.value === "กรุงเทพมหานคร");
+  check("a prefix-less อำเภอ resolves to the canonical name",
+    legacy.els.district.value === "เขตบางรัก", legacy.els.district.value);
+  check("the ตำบล under it resolves too", legacy.els.sub_district.value === "บางรัก");
+  check("hydrating does not touch the stored ไปรษณีย์", legacy.els.zip_code.value === "10500");
+
+  /* edit: a จังหวัด no table knows */
+  const odd = form({ province: "เมืองนอก", district: "ที่ไหนสักแห่ง", sub_district: "", zip_code: "" });
+  await A.wireAddress(odd);
+  check("an unknown จังหวัด is kept, not reassigned", odd.els.province.value === "เมืองนอก", odd.els.province.value);
+  check("the อำเภอ under it is kept too", odd.els.district.value === "ที่ไหนสักแห่ง", odd.els.district.value);
+
+  /* บริษัท and คลังสินค้า: the API takes จังหวัด and nothing below it */
+  const provinceOnly = form({ province: "เชียงใหม่" }, ["province"]);
+  await A.wireAddress(provinceOnly);
+  check("a จังหวัด-only form still fills its one list", provinceOnly.els.province.options.length === 78);
+  check("a จังหวัด-only form keeps its value", provinceOnly.els.province.value === "เชียงใหม่");
+
+  /* the lists are fetched once per page, not once per form */
+  reads = [];
+  const again = form({ province: "กรุงเทพมหานคร" });
+  await A.wireAddress(again);
+  await settle();
+  check("a second form re-uses the cached tables", reads.length === 0, reads.join(" "));
+
+  globalThis.fetch = realFetch;
+
+  /* the descriptors and the markup they produce */
+  const FIELDS = await mod("../public/assets/js/core/fields.js");
+  const RES = await mod("../public/assets/js/master/resources.js");
+  const parts = (name) =>
+    RES.MASTER_BY_NAME[name].fields.filter((f) => f.address).map((f) => f.address).join(",");
+  check("ลูกค้า carries the whole cascade", parts("customer") === "sub_district,district,province,zip_code", parts("customer"));
+  check("คู่ค้า carries the whole cascade", parts("vendor") === "sub_district,district,province,zip_code", parts("vendor"));
+  // Neither API descriptor accepts a district, so neither screen pretends to.
+  check("คลังสินค้า picks a จังหวัด only", parts("warehouse") === "province", parts("warehouse"));
+  check("บริษัท picks a จังหวัด only", parts("company") === "province", parts("company"));
+
+  const provinceField = RES.MASTER_BY_NAME.customer.fields.find((f) => f.name === "province");
+  const zipField = RES.MASTER_BY_NAME.customer.fields.find((f) => f.name === "zip_code");
+  const provinceHtml = FIELDS.fieldControl(provinceField, { province: "กรุงเทพมหานคร" }, "edit");
+  check("a place field renders a select", provinceHtml.startsWith("<select"));
+  check("the select is marked for the cascade", provinceHtml.includes('data-address="province"'));
+  check("the stored value rides along in data-value", provinceHtml.includes('data-value="กรุงเทพมหานคร"'));
+  check("the select still writes the same column", provinceHtml.includes('data-field="province"'));
+  const zipHtml = FIELDS.fieldControl(zipField, { zip_code: "10500" }, "edit");
+  check("ไปรษณีย์ stays a box", zipHtml.startsWith("<input") && zipHtml.includes('data-address="zip_code"'), zipHtml.slice(0, 40));
+  check("ไปรษณีย์ keeps its value", zipHtml.includes('value="10500"'));
+}
+
 /* --------------------------------------------------------------- nav.ts */
 console.log("# nav ↔ pages consistency");
 const N = await mod("../public/assets/js/core/nav.js");
@@ -675,6 +890,15 @@ if (!process.argv.includes("--no-server")) {
     check("webmanifest mime", wm.headers.get("content-type") === "application/manifest+json", wm.headers.get("content-type"));
     const png = await fetch(BASE + "/assets/image/png/icon/favicon-32x32.png");
     check("png mime", png.headers.get("content-type") === "image/png", png.headers.get("content-type"));
+
+    // The address picker fetches these by path; a wrong mime or a missing
+    // file only shows up as a จังหวัด list that never fills.
+    const idx = await fetch(BASE + "/assets/data/th/provinces.json");
+    check("provinces.json served", idx.status === 200, idx.status);
+    check("provinces.json mime", idx.headers.get("content-type") === "application/json", idx.headers.get("content-type"));
+    check("provinces.json parses", (await idx.json()).length === 77);
+    const bkk = await fetch(BASE + "/assets/data/th/province/1.json");
+    check("province/1.json is Bangkok", (await bkk.json()).th === "กรุงเทพมหานคร");
   } finally {
     server.kill();
   }

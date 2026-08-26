@@ -37,7 +37,55 @@ const DESC_FIELD = {
   wide: true,
 };
 
-const PROVINCE_FILTER: FilterDef = { param: "province", label: "จังหวัด", free: true };
+const PROVINCE_FILTER: FilterDef = {
+  param: "province",
+  label: "จังหวัด",
+  free: true,
+  addressList: "province",
+};
+
+/**
+ * ที่อยู่ — สี่คอลัมน์ที่ PenbunSQL เก็บเป็น nvarchar ไม่ใช่คีย์นอก
+ *
+ * `address` บอกให้ core/fields.ts วาดเป็นชั้นของ จังหวัด → อำเภอ → ตำบล →
+ * รหัสไปรษณีย์ แทนกล่องข้อความเปล่า ๆ ส่วนค่าที่ส่งขึ้น API ยังเป็นสตริงชุดเดิม
+ * ทุกประการ — ตัวเลือกมีไว้ให้พิมพ์ผิดยากขึ้น ไม่ได้เปลี่ยนสัญญากับ PenbunAPI
+ *
+ * คลังสินค้าและบริษัทรับเฉพาะ `province` (ดู internal/resources ฝั่ง API)
+ * จึงได้แค่รายชื่อจังหวัด ไม่มีชั้นถัดไปให้เลือก
+ */
+const SUB_DISTRICT_FIELD = {
+  name: "sub_district",
+  kind: "string" as const,
+  label: "ตำบล/แขวง",
+  maxLen: 100,
+  address: "sub_district" as const,
+};
+
+const DISTRICT_FIELD = {
+  name: "district",
+  kind: "string" as const,
+  label: "อำเภอ/เขต",
+  maxLen: 100,
+  address: "district" as const,
+};
+
+const PROVINCE_FIELD = {
+  name: "province",
+  kind: "string" as const,
+  label: "จังหวัด",
+  maxLen: 100,
+  address: "province" as const,
+};
+
+const ZIP_FIELD = {
+  name: "zip_code",
+  kind: "string" as const,
+  label: "รหัสไปรษณีย์",
+  maxLen: 10,
+  address: "zip_code" as const,
+  hint: "เติมให้เองเมื่อเลือกตำบล/แขวง แก้ด้วยมือได้",
+};
 
 /**
  * The three coded lists v7 enforces with a CHECK constraint.
@@ -135,7 +183,7 @@ export const COMPANY: MasterResource = {
     { name: "branch_code", kind: "string", label: "รหัสสาขา", maxLen: 10 },
     { name: "branch_name", kind: "string", label: "ชื่อสาขา", maxLen: 100 },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
-    { name: "province", kind: "string", label: "จังหวัด", maxLen: 100 },
+    PROVINCE_FIELD,
     { name: "zip_code", kind: "string", label: "รหัสไปรษณีย์", maxLen: 10 },
     { name: "phone", kind: "string", label: "โทรศัพท์", maxLen: 30 },
     { name: "email", kind: "string", label: "อีเมล", maxLen: 150 },
@@ -392,7 +440,7 @@ export const WAREHOUSE: MasterResource = {
       hint: "เปิดเมื่อคลังนี้ต้องรับการตัดสต็อกได้แม้ยอดคงเหลือไม่พอ",
     },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
-    { name: "province", kind: "string", label: "จังหวัด", maxLen: 100 },
+    PROVINCE_FIELD,
     DESC_FIELD,
   ],
 };
@@ -473,10 +521,10 @@ export const VENDOR: MasterResource = {
     { name: "email", kind: "string", label: "อีเมล", maxLen: 150 },
     { name: "website", kind: "string", label: "เว็บไซต์", maxLen: 150 },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
-    { name: "sub_district", kind: "string", label: "ตำบล/แขวง", maxLen: 100 },
-    { name: "district", kind: "string", label: "อำเภอ/เขต", maxLen: 100 },
-    { name: "province", kind: "string", label: "จังหวัด", maxLen: 100 },
-    { name: "zip_code", kind: "string", label: "รหัสไปรษณีย์", maxLen: 10 },
+    SUB_DISTRICT_FIELD,
+    DISTRICT_FIELD,
+    PROVINCE_FIELD,
+    ZIP_FIELD,
     { name: "credit_term_day", kind: "int", label: "เครดิต (วัน)" },
     { name: "currency", kind: "string", label: "สกุลเงิน", maxLen: 10 },
     { name: "consign_share_percent", kind: "decimal", label: "ส่วนแบ่งฝากขาย (%)" },
@@ -537,10 +585,10 @@ export const CUSTOMER: MasterResource = {
     { name: "email", kind: "string", label: "อีเมล", maxLen: 150 },
     { name: "line_id", kind: "string", label: "LINE ID", maxLen: 50 },
     { name: "address", kind: "string", label: "ที่อยู่", maxLen: 255, multiline: true, wide: true },
-    { name: "sub_district", kind: "string", label: "ตำบล/แขวง", maxLen: 100 },
-    { name: "district", kind: "string", label: "อำเภอ/เขต", maxLen: 100 },
-    { name: "province", kind: "string", label: "จังหวัด", maxLen: 100 },
-    { name: "zip_code", kind: "string", label: "รหัสไปรษณีย์", maxLen: 10 },
+    SUB_DISTRICT_FIELD,
+    DISTRICT_FIELD,
+    PROVINCE_FIELD,
+    ZIP_FIELD,
     { name: "credit_limit", kind: "decimal", label: "วงเงินเครดิต" },
     { name: "credit_term_day", kind: "int", label: "เครดิต (วัน)" },
     { name: "is_vat", kind: "bool", label: "จด VAT" },

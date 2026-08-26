@@ -16,6 +16,8 @@
  * checked only to save a round trip, never as the authority.
  */
 
+import type { AddressPart } from "./address.js";
+
 /** Mirrors schema.Kind. Decides both the input control and the cell format. */
 export type Kind = "string" | "int" | "decimal" | "bool" | "date";
 
@@ -46,6 +48,13 @@ export interface Field {
   multiline?: boolean;
   /** Field spans both form columns. */
   wide?: boolean;
+  /**
+   * Part of a Thai address, rendered as a step of the จังหวัด → อำเภอ → ตำบล
+   * cascade instead of a plain box — see core/address.ts. Presentation only,
+   * like `multiline` and `wide`: the column is still nvarchar, the payload is
+   * still the same string, and PenbunAPI knows nothing about it.
+   */
+  address?: AddressPart;
 }
 
 /** A foreign key the client sends as a business ID. Mirrors schema.Ref. */
@@ -84,6 +93,13 @@ export interface FilterDef {
   enumLabels?: Readonly<Record<string, string>>;
   /** No options at all: a free-text box (province, issue_no). */
   free?: boolean;
+  /**
+   * Suggestions for a `free` box, taken from the address tables rather than
+   * from a resource. The box stays free text: the column holds whatever was
+   * typed into it years ago, and a filter that offered only canonical names
+   * could not find those rows.
+   */
+  addressList?: AddressPart;
   /**
    * The source table can exceed the API's 200-row cap, so the control is a
    * search box with suggestions instead of a list that quietly stops short.

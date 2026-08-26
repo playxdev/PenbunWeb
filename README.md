@@ -36,6 +36,7 @@ Other commands:
 | `npm run deploy` | Build and upload `public/` to Cloudflare Pages |
 | `npm run gen:master` | Build, then write one HTML file per master resource from the registry |
 | `python3 tools/gen_pages.py` | Generate the remaining mock list/error pages from the shared template |
+| `node tools/gen_thai_address.mjs` | Rebuild the Thai address tables in `public/assets/data/th` |
 
 **Sign in:** a real PenbunAPI account. `POST /auth/login` issues the token pair.
 Click **ดู UI แบบสาธิต** to browse the screens with no API running — that session never calls the API.
@@ -108,10 +109,11 @@ penbunweb/
 │  ├─ _headers                 ← security headers + cache rules
 │  └─ assets/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
+│     ├─ data/ th/  จังหวัด → อำเภอ → ตำบล → ไปรษณีย์ (generated, committed)
 │     └─ js/   (tsc output — not committed)
 ├─ src/ts/                     ← 40 pages in public/, all fed from here
 │  ├─ core/       config · tokens · api · auth · theme · nav · ui · charts · icons · format
-│  │              enums · version · schema · fields · table   ← shared by both engines
+│  │              enums · version · schema · fields · table · address ← shared by both engines
 │  ├─ master/     schema · resources · repo · view · form · page · hub   ← the master engine
 │  ├─ docs/       schema · resources · repo · view · page              ← the document engine
 │  ├─ components/ brand · sidebar · nav-menu · topbar · theme-toggle · footer
@@ -120,7 +122,7 @@ penbunweb/
 │  ├─ pages/      dashboard.ts · settings.ts
 │  ├─ main.ts        ← entry point for shell pages
 │  └─ standalone.ts  ← entry point for login/error pages
-├─ tools/  gen_pages.py · gen_master_pages.mjs · serve.mjs · test.mjs
+├─ tools/  gen_pages.py · gen_master_pages.mjs · gen_thai_address.mjs · serve.mjs · test.mjs
 ├─ wrangler.toml   ← Cloudflare Pages config (output dir = public)
 ├─ .nvmrc           ← pins Node 20 for Cloudflare builds
 ├─ DESIGN.md        ← design concept + prompts for adding screens
@@ -261,6 +263,41 @@ One limit inherited from the contract, worth knowing before filing a bug:
 
 - An **optional ref cannot be cleared**. `ResolveRefs` treats `null` as “not sent”, so a ref can be
   pointed elsewhere but not emptied.
+
+#### The address picker — จังหวัด → อำเภอ/เขต → ตำบล/แขวง → รหัสไปรษณีย์
+
+An address is four `nvarchar` columns in PenbunSQL — `province`, `district`, `sub_district`,
+`zip_code` — not four foreign keys. So the picker is a typing aid and nothing more: the user
+chooses from real lists, and the payload carries the same plain strings a text box would have
+sent. PenbunAPI is unchanged and knows nothing about it.
+
+```text
+core/address.ts                  the three lists, the matching rules, the cascade
+core/schema.ts   Field.address   marks a field as one step of it (presentation only)
+tools/gen_thai_address.mjs       builds the tables from playxdev/iHapWeb data/raw
+public/assets/data/th/           77 + 928 + 7,452 rows, 624 KB, committed
+```
+
+The tables are static files, not an endpoint: `provinces.json` is 4 KB and loads once,
+`province/<id>.json` is ~8 KB and arrives when a province is picked — after which the อำเภอ list,
+the ตำบล list and every รหัสไปรษณีย์ under it are already in hand. Both are cached per page, so a
+second form fetches nothing.
+
+Three behaviours worth knowing:
+
+- **Marking a field is the whole integration.** `{ name: "province", …, address: "province" }` in
+  `master/resources.ts` turns the box into a select. ลูกค้า and คู่ค้า carry all four steps;
+  คลังสินค้า and บริษัท carry `province` only, because their API descriptors accept nothing below
+  it — the DB columns exist on `tb_company`, the descriptor does not expose them.
+- **A stored address is matched forgivingly, never overwritten.** Rows written before the picker
+  hold what somebody typed: “บางรัก” where the canonical name is “เขตบางรัก”, “จ.นนทบุรี” where it
+  is “นนทบุรี”. Prefixes and spaces are ignored when matching, and a value that still matches
+  nothing is kept as its own option rather than silently reassigned to the top of the list.
+- **Only picking a ตำบล writes the รหัสไปรษณีย์**, and it overwrites. The box stays editable —
+  a row may legitimately disagree with the tables — and hydrating an existing row never touches it.
+
+The `จังหวัด` filter above the list stays a free-text box with the 77 names as suggestions, for
+the same reason: it has to be able to find the rows that spell it some other way.
 
 `customer-route` used to be a second one — no status column and no search, because
 `vw_customer_route` selected neither `is_active` nor the audit columns. PenbunSQL v8 gives the

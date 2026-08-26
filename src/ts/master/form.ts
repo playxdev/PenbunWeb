@@ -21,6 +21,7 @@
  * `errors[]` and pinned onto the field it names.
  */
 
+import { wireAddress } from "../core/address.js";
 import { ApiError } from "../core/api.js";
 import { esc } from "../core/format.js";
 import { icon } from "../core/icons.js";
@@ -138,6 +139,7 @@ export function openMasterForm(r: MasterResource, mode: Mode, row?: Row): Promis
 
   document.body.appendChild(host);
   void fillRefSelects(host);
+  void wireAddress(host);
   wireRefSearch(host);
   requestAnimationFrame(() => {
     host.classList.add("is-open");

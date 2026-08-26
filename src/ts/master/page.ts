@@ -14,6 +14,7 @@
  * land are always the ones that match what is in the box.
  */
 
+import { provinceNames } from "../core/address.js";
 import { ApiError, CODE } from "../core/api.js";
 import { esc } from "../core/format.js";
 import { icon } from "../core/icons.js";
@@ -226,9 +227,21 @@ class MasterScreen {
 
     this.root.querySelectorAll<HTMLInputElement>("input[data-filter][list]").forEach((input) => {
       const def = (this.r.filters ?? []).find((f) => f.param === input.dataset.filter);
-      if (!def?.resource) return;
+      if (!def) return;
       const listEl = document.getElementById(input.getAttribute("list")!);
       if (!listEl) return;
+
+      // The address suggestions are a static file, not a resource: they are
+      // written once and never depend on what the user has typed.
+      if (def.addressList === "province") {
+        void provinceNames()
+          .then((names) => {
+            listEl.innerHTML = names.map((n) => `<option value="${esc(n)}"></option>`).join("");
+          })
+          .catch(() => undefined);
+        return;
+      }
+      if (!def.resource) return;
       let timer = 0;
       const load = (term: string): void => {
         window.clearTimeout(timer);
