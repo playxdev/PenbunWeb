@@ -246,12 +246,15 @@ Four things the engine does deliberately:
 - **Validation is the database's answer, not the browser's.** Required and max-length are checked
   to save a round trip. Everything else arrives as `errors[]` and is pinned onto the field it names.
 
-Two limits inherited from the contract, both worth knowing before filing a bug:
+One limit inherited from the contract, worth knowing before filing a bug:
 
 - An **optional ref cannot be cleared**. `ResolveRefs` treats `null` as “not sent”, so a ref can be
   pointed elsewhere but not emptied.
-- **`customer-route` has no status column and no search.** `vw_customer_route` selects neither
-  `is_active` nor the audit columns, and the descriptor declares no `SearchColumns`.
+
+`customer-route` used to be a second one — no status column and no search, because
+`vw_customer_route` selected neither `is_active` nor the audit columns. PenbunSQL v8 gives the
+view those columns and the API a `SearchColumns` list, so all eighteen screens behave the same
+way now.
 
 **Reading errors:** every response uses one envelope. `core/api.ts` unwraps it and throws
 `ApiError` carrying `code`, `httpStatus`, `fieldErrors` and `trace_id`.

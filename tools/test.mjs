@@ -427,12 +427,13 @@ console.log("# master registry");
     }
   }
 
-  // vw_customer_route selects neither is_active nor update_date; asking for
-  // either would be a query against a column the view does not have.
+  // PenbunSQL v8 gave vw_customer_route its audit columns and a description,
+  // so this screen is no longer the one exception among the eighteen.
   const cr = R.MASTER_BY_NAME["customer-route"];
-  check("customer-route declares no audit columns", cr.audit === false);
-  check("customer-route shows no status column", !cr.columns.some((c) => c.key === "is_active"));
-  check("customer-route has no searchable columns", cr.searchable === false);
+  check("customer-route reads audit columns", cr.audit === true);
+  check("customer-route shows a status column", cr.columns.some((c) => c.key === "is_active"));
+  check("customer-route is searchable", cr.searchable === true);
+  check("every master resource now reads audit columns", R.MASTERS.every((m) => m.audit !== false));
   check("book stays writable — /book takes POST/PUT/DELETE", R.MASTER_BY_NAME["book"].readOnly !== true);
   check("every page id resolves back", R.MASTERS.every((m) => R.masterForPage(m.page) === m));
   check("unknown page resolves to nothing", R.masterForPage("nope") === undefined);
@@ -548,10 +549,10 @@ console.log("# master requests (stubbed fetch)");
   check("absent search is not sent", query().has("q") === false);
   check("absent status is not sent", query().has("is_active") === false);
 
-  // vw_customer_route has no is_active column — the request must not ask.
   reset();
   await REPO.listRows(R.MASTER_BY_NAME["customer-route"], { page: 1, limit: 25, isActive: true });
-  check("customer-route never filters on is_active", query().has("is_active") === false, calls[0].url);
+  check("customer-route filters on is_active like every other resource",
+    query().get("is_active") === "true", calls[0].url);
 
   reset();
   handler = () => new Response(JSON.stringify({ status: "success", message: "ok", code: "OK",

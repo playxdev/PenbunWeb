@@ -607,10 +607,11 @@ export const CUSTOMER_ROUTE: MasterResource = {
   icon: "link",
   idKey: "customer_route_id",
   titleKey: "customer_name",
-  // vw_customer_route คืนเฉพาะคอลัมน์ที่ใช้แสดงผล ไม่มี is_active / update_date
-  // การกรองหรือแสดงสถานะจึงเป็นการถามหาคอลัมน์ที่ไม่มีอยู่ใน View
-  audit: false,
-  searchable: false,
+  // PenbunSQL v8 ทำให้ View คืน description และคอลัมน์ audit ครบ หน้าจอนี้จึงมี
+  // สถานะและค้นหาได้เท่ากับอีก 17 หน้าจอ ก่อนหน้านั้นต้องปิดทั้งสองอย่างไว้
+  // เพราะการกรองคือการถามหาคอลัมน์ที่ View ไม่มี
+  audit: true,
+  searchable: true,
   defaultSort: "route",
   defaultAsc: true,
   columns: [
@@ -620,6 +621,7 @@ export const CUSTOMER_ROUTE: MasterResource = {
     { key: "region_name", label: "ภาค" },
     { key: "is_primary", label: "สายหลัก", kind: "bool", tone: "brand", labels: { "true": "สายหลัก", "false": "สายรอง" } },
     { key: "delivery_seq", label: "ลำดับจุดจอด", kind: "qty", sort: "seq" },
+    STATUS_COL,
   ],
   filters: [
     { param: "customer_id", label: "ลูกค้า", resource: "customer", big: true },
@@ -824,6 +826,13 @@ export const BOOK: MasterResource = {
     { name: "vendor_discount_percent", kind: "decimal", label: "ส่วนลดจากคู่ค้า (%)", min: 0 },
     { name: "customer_discount_percent", kind: "decimal", label: "ส่วนลดให้ลูกค้า (%)", min: 0 },
     { name: "effective_date", kind: "date", label: "วันที่มีผล" },
+    {
+      name: "complimentary_qty",
+      kind: "int",
+      label: "อภินันท์ (เล่ม)",
+      min: 0,
+      hint: "จำนวนเล่มที่ให้เปล่า ใบชำระเจ้าของหนังสือและใบรับเงินล่วงหน้าอ่านค่านี้",
+    },
     { name: "sell_price", kind: "decimal", label: "ราคาขาย", min: 0 },
     { name: "cost_price", kind: "decimal", label: "ราคาทุน", min: 0 },
     { name: "barcode", kind: "string", label: "บาร์โค้ด", maxLen: 50 },
