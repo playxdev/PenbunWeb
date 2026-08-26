@@ -80,6 +80,19 @@ export function apiBase(): string {
   return fromStorage() ?? fromMeta() ?? targetOrigin() + API_PREFIX;
 }
 
+/**
+ * The API's origin without the version prefix.
+ *
+ * `/healthz`, `/readyz` and `/version` are registered on the app root in
+ * `main.go`, not inside `app.Group("/api/v2", …)`, and they answer plain JSON
+ * rather than the envelope every other route uses. They are operational
+ * endpoints, so this is derived from whatever `apiBase()` resolved to —
+ * including a console override — rather than resolved a second time.
+ */
+export function apiRoot(): string {
+  return apiBase().replace(/\/api\/v\d+$/, "");
+}
+
 /** Point this browser at another API. Pass null to go back to the default. */
 export function setApiBase(url: string | null): void {
   try {

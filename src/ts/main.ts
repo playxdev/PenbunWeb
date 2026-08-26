@@ -14,6 +14,7 @@ import { initTheme } from "./core/theme.js";
 import { requireSession, validateSession } from "./core/auth.js";
 import { mountAppLayout } from "./layouts/app-layout.js";
 import { initUI, toast } from "./core/ui.js";
+import { WEB_VERSION } from "./core/version.js";
 
 async function boot(): Promise<void> {
   initTheme();
@@ -41,6 +42,9 @@ async function boot(): Promise<void> {
   if (page === "dashboard") {
     const { initDashboard } = await import("./pages/dashboard.js");
     initDashboard();
+  } else if (page === "settings") {
+    const { initSettings } = await import("./pages/settings.js");
+    void initSettings(user);
   } else if (page === "master") {
     const { initMasterHub } = await import("./master/hub.js");
     initMasterHub();
@@ -53,7 +57,7 @@ async function boot(): Promise<void> {
     const resource = masterForPage(page);
     if (resource) {
       const { initMasterPage } = await import("./master/page.js");
-      initMasterPage(resource, user);
+      await initMasterPage(resource, user);
     }
   }
 
@@ -66,7 +70,7 @@ async function boot(): Promise<void> {
     window.setTimeout(
       () =>
         toast(
-          "PenbunWeb beta 1.3.0",
+          `PenbunWeb ${WEB_VERSION}`,
           user.demo
             ? "โหมดสาธิต ไม่ได้เชื่อมต่อ PenbunAPI"
             : "ข้อมูลพื้นฐานอ่านและบันทึกผ่าน PenbunAPI แล้ว หน้าเอกสารและสต็อกยังเป็นตัวอย่าง",
