@@ -1,0 +1,30 @@
+# PenbunWeb CI — mirrors PenbunAPI's workflow so both repositories fail the
+# same way. `npm test` builds first and then runs tools/test.mjs, which spawns
+# tools/serve.mjs and fetches every page, so this needs no services and no
+# secrets: nothing here talks to PenbunAPI or the database.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Same file Cloudflare Pages reads, so CI and the deploy build
+          # never run on different Node versions.
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Run tests
+        run: npm test

@@ -696,5 +696,107 @@ console.log("# csp ↔ api origin");
   check("CSP allows the API origin in connect-src", prod ? connect.includes(prod) : false, connect.trim());
 }
 
+/* --------------------------------------------------- version ↔ package.json */
+// The screen prints core/version.ts, the release tag comes from package.json,
+// and nothing links them. A version string that disagrees with the artifact it
+// ships in is how the old "เกี่ยวกับระบบ" card came to claim v4.0.0 forever.
+console.log("# version");
+{
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const V = await mod("../public/assets/js/core/version.js");
+  check("WEB_VERSION matches package.json", V.WEB_VERSION === pkg.version, `${V.WEB_VERSION} vs ${pkg.version}`);
+
+  const settings = readFileSync(new URL("../public/settings.html", import.meta.url), "utf8");
+  for (const id of ["pb-ver-web", "pb-ver-api", "pb-ver-base", "pb-ver-status"]) {
+    check(`settings.html has #${id}`, settings.includes(`id="${id}"`), id);
+  }
+  // The card used to hardcode versions of things it cannot see.
+  check("settings.html states no API version of its own", !/v4\.0\.0/.test(settings));
+
+  // /version and /healthz live on the app root, not under /api/v2.
+  const CFG3 = await mod("../public/assets/js/core/config.js");
+  check("apiRoot drops the version prefix", !/\/api\/v\d+$/.test(CFG3.apiRoot()), CFG3.apiRoot());
+  check("apiRoot is a prefix of apiBase", CFG3.apiBase().startsWith(CFG3.apiRoot()), CFG3.apiRoot());
+}
+
+/* ---------------------------------------------------------------- enums.ts */
+// The three coded lists exist in the CHECK constraint, in the Go descriptors
+// and here. This suite covers the rule that keeps the third copy honest:
+// the server decides membership, the local array decides only order.
+console.log("# enums");
+{
+  const E = await mod("../public/assets/js/core/enums.js");
+  const R2 = await mod("../public/assets/js/master/resources.js");
+  E.reset();
+
+  const fallback = ["DC", "BRANCH", "RETURN"];
+  check("no server answer → fallback unchanged", E.values("warehouse_warehouse_type", fallback) === fallback);
+
+  globalThis.sessionStorage = (() => {
+    const m = new Map();
+    return {
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => void m.set(k, String(v)),
+      removeItem: (k) => void m.delete(k),
+    };
+  })();
+
+  const realFetch2 = globalThis.fetch;
+  let hits = 0;
+  globalThis.fetch = async () => {
+    hits++;
+    return new Response(
+      JSON.stringify({
+        status: "success",
+        message: "ok",
+        code: "OK",
+        trace_id: "t",
+        // Alphabetical, one value this build does not know, one it lists but
+        // the database no longer accepts (RETURN is absent).
+        data: { warehouse_warehouse_type: ["BRANCH", "DC", "LOCKER"] },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  await E.loadEnums();
+  const merged = E.values("warehouse_warehouse_type", fallback);
+  check("server list wins over the fallback", merged.join(",") === "DC,BRANCH,LOCKER", merged.join(","));
+  check("fallback order survives", merged[0] === "DC" && merged[1] === "BRANCH");
+  check("unknown value is appended, not dropped", merged.includes("LOCKER"));
+  check("value the database dropped disappears", !merged.includes("RETURN"));
+  check("a key the server never sent falls back", E.values("route_route_type", ["DAILY"]).join(",") === "DAILY");
+
+  await E.loadEnums();
+  check("session cache spares a second call", hits === 1, `fetch called ${hits}×`);
+
+  // A failing endpoint must leave the screen usable, not throw into the caller.
+  E.reset();
+  globalThis.fetch = async () => {
+    throw new Error("offline");
+  };
+  let threw = false;
+  await E.loadEnums().catch(() => (threw = true));
+  check("loadEnums never rejects", !threw);
+  check("after a failure the fallback still answers", E.values("warehouse_warehouse_type", fallback) === fallback);
+  globalThis.fetch = realFetch2;
+
+  // The keys are `<table without tb_>_<column>`, which is how the meta handler
+  // names them. Getting one wrong fails silently: the fallback answers forever.
+  check("warehouse key", R2.WAREHOUSE_TYPE_KEY === "warehouse_warehouse_type", R2.WAREHOUSE_TYPE_KEY);
+  check("route key", R2.ROUTE_TYPE_KEY === "route_route_type", R2.ROUTE_TYPE_KEY);
+  check("trade key", R2.TRADE_TYPE_KEY === "vendor_trade_type", R2.TRADE_TYPE_KEY);
+
+  // Every enum control must declare a key, or it is a hardcoded list again.
+  for (const m of R2.MASTERS) {
+    for (const f of m.fields) {
+      if (f.enumValues) check(`${m.name}: field ${f.name} declares enumKey`, !!f.enumKey, f.name);
+    }
+    for (const f of m.filters ?? []) {
+      if (f.enumKey) check(`${m.name}: filter ${f.param} has labels`, !!f.enumLabels, f.param);
+    }
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

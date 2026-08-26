@@ -105,12 +105,12 @@ penbunweb/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
 │     └─ js/   (tsc output — not committed)
 ├─ src/ts/                     ← 40 pages in public/, all fed from here
-│  ├─ core/       config · tokens · api · auth · theme · nav · ui · charts · icons · format
+│  ├─ core/       config · tokens · api · auth · theme · nav · ui · charts · icons · format · enums · version
 │  ├─ master/     schema · resources · repo · view · form · page · hub   ← the master engine
 │  ├─ components/ brand · sidebar · nav-menu · topbar · theme-toggle · footer
 │  ├─ layouts/    app-layout.ts   ← wraps every page's content in the shell
 │  ├─ data/       mock.ts         ← sample data for the screens not yet wired
-│  ├─ pages/      dashboard.ts
+│  ├─ pages/      dashboard.ts · settings.ts
 │  ├─ main.ts        ← entry point for shell pages
 │  └─ standalone.ts  ← entry point for login/error pages
 ├─ tools/  gen_pages.py · gen_master_pages.mjs · serve.mjs · test.mjs
@@ -204,7 +204,8 @@ and reports. These still read `mock.ts`.
 | Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
 | Users | `users.html` | Blocked — PenbunAPI exposes only `PUT /users/{id}/unlock`; there is no user CRUD |
 | Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v7 has none |
-| Version number | `settings.html`, “About system” | Open — `GET /version` |
+| Enum options | `src/ts/core/enums.ts` | **Done** — `GET /meta/enums`; the arrays in `master/resources.ts` are now only a fallback |
+| Version number | `settings.html`, “About system” | **Done** — `GET /version`, plus `WEB_VERSION` in `core/version.ts` |
 
 ### The master-data engine
 
@@ -308,8 +309,10 @@ both have to change together — local development never notices, because
 - Fonts are the only third-party request. Master screens also call PenbunAPI; every other request
   the app makes goes to the API origin listed in `connect-src`.
 - `npm test` runs the whole suite with no dependencies: formatting, charts, the API pipeline
-  against a stubbed `fetch`, the master registry and request builder, nav↔page consistency, and an
-  HTTP smoke test of every page and asset.
+  against a stubbed `fetch`, the master registry and request builder, nav↔page consistency, the
+  enum fallback rules, and an HTTP smoke test of every page and asset.
+- `.github/workflows/ci.yml` runs `npm run typecheck` and `npm test` on every push and pull
+  request, on the Node version in `.nvmrc` — the same one Cloudflare Pages builds with.
 
 ---
 
