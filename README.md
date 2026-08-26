@@ -105,8 +105,10 @@ penbunweb/
 │     ├─ css/  01-tokens · 02-base · 03-layout · 04-components · 05-pages
 │     └─ js/   (tsc output — not committed)
 ├─ src/ts/                     ← 40 pages in public/, all fed from here
-│  ├─ core/       config · tokens · api · auth · theme · nav · ui · charts · icons · format · enums · version
+│  ├─ core/       config · tokens · api · auth · theme · nav · ui · charts · icons · format
+│  │              enums · version · schema · fields · table   ← shared by both engines
 │  ├─ master/     schema · resources · repo · view · form · page · hub   ← the master engine
+│  ├─ docs/       schema · resources · repo · view · page              ← the document engine
 │  ├─ components/ brand · sidebar · nav-menu · topbar · theme-toggle · footer
 │  ├─ layouts/    app-layout.ts   ← wraps every page's content in the shell
 │  ├─ data/       mock.ts         ← sample data for the screens not yet wired
@@ -200,7 +202,8 @@ and reports. These still read `mock.ts`.
 | Forced first password change | `standalone.ts` + `#pb-changepw` | **Done** — `POST /auth/change-password` |
 | Page protection | `requireSession()` + `validateSession()` | **Done** — instant local guard, then `GET /auth/me` |
 | Master data (18 resources) | `src/ts/master/*` | **Done** — list, create, edit, soft delete against the five CRUD endpoints |
-| Document screens | `doc-*.html`, `src/ts/data/mock.ts` | Open — 4 specs × 9 endpoints, including the status cycle |
+| ใบรับสินค้า | `src/ts/docs/*` | **Done** — list, editor, confirm, post, cancel, delete against the nine endpoints |
+| ใบส่งหนังสือ · ใบรับคืน · ใบส่งคืนคู่ค้า | `doc-order.html`, `doc-return.html`, `doc-vendor-return.html` | Open — same engine, one descriptor each, plus the rule each carries |
 | Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
 | Users | `users.html` | Blocked — PenbunAPI exposes only `PUT /users/{id}/unlock`; there is no user CRUD |
 | Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v7 has none |
@@ -222,6 +225,11 @@ master/form.ts        the create/edit dialog, built from Field[] and Ref[]
 master/page.ts        the controller: URL-backed state, single-flight requests
 master/hub.ts         master.html — the index of all 18
 ```
+
+Three modules under `core/` are shared with the document engine, because PenbunAPI shares the
+same ones between its two engines: `core/schema.ts` (Field · Ref · FilterDef, mirroring
+`internal/schema`), `core/fields.ts` (one input control per Field, plus reading the form back)
+and `core/table.ts` (cells, pagination, states).
 
 **Adding a resource** takes two steps: append a descriptor to `MASTERS`, then run
 `npm run gen:master` to write its HTML file. No markup, no fetch code, no form.
@@ -260,6 +268,37 @@ The client must not calculate stock. All balances are assumed to come from the s
 (`tb_stock_movement`); the client only displays them.
 
 ---
+
+### The document engine
+
+PenbunAPI describes each document type as a `document.Spec` and gets nine endpoints from one
+engine. `src/ts/docs/` mirrors it the same way the master engine mirrors `crud.Resource`.
+
+```text
+docs/schema.ts        DocSpec + the lifecycle predicates   (mirrors internal/domain/document)
+docs/resources.ts     one descriptor per document type
+docs/repo.ts          the nine requests
+docs/view.ts          list + editor markup (markup only)
+docs/page.ts          the controller: list and editor behind one URL
+```
+
+Four differences from the master engine, all of them the contract's:
+
+- **The list endpoint takes no `q` and no `sort`.** It orders by `doc_date DESC, autoID DESC`, so
+  the toolbar searches on `doc_no` and no header is clickable. A header that looks sortable and
+  reorders nothing is worse than a plain one.
+- **Items are editable only in DRAFT**, and are replaced as a whole set — there is no endpoint
+  for one line, because the header totals are recalculated on every write anyway.
+- **The screen never adds anything up.** `total_qty` and `total_amount` come back from the
+  database on every write and the editor re-renders from that answer. The only arithmetic on the
+  page is a per-line preview while the user is still typing.
+- **Posted is per spec, not a shared constant.** Three of the four documents end at `POSTED` and
+  the delivery note ends at `DELIVERED`, so a shared "posted" badge would be wrong on one screen
+  in four.
+
+**No screen offers a reversal.** `PUT /{doc}/{id}/reverse` does not exist (PENBUN-TODO §3.4), and
+a posted document cannot be cancelled — the stock ledger is append-only by design. The button
+appears when the endpoint does.
 
 ## 7. Deploying to Cloudflare Pages
 
@@ -318,9 +357,12 @@ both have to change together — local development never notices, because
 
 ## 9. Not in This Release
 
-- PenbunAPI integration beyond `/auth/*` and the 18 master resources — document, stock,
-  consignment, allocation, user and report screens still read `mock.ts`.
-- Document create/edit forms (header + items) and virtualized tables.
+- PenbunAPI integration beyond `/auth/*`, the 18 master resources and ใบรับสินค้า — the other
+  three document types, stock, consignment, allocation, user and report screens still read
+  `mock.ts`.
+- Reversing a posted document. PenbunAPI has no `reverse` endpoint yet, so no screen offers the
+  button; a posted document is final in this release.
+- Document printing and virtualized tables.
 - “Remember this device” on the login form is decorative; the session always persists.
 - Password recovery (`ลืมรหัสผ่าน?`) — PenbunAPI has no endpoint for it.
 - Real RBAC (waiting for role/permission tables), i18n (currently Thai hardcoded), and document printing.

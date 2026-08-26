@@ -798,5 +798,219 @@ console.log("# enums");
   }
 }
 
+/* ------------------------------------------------------- document engine */
+// The document screens are generated from descriptors like the master ones,
+// but the rules they have to respect are stricter: a wrong status guard is a
+// button that moves stock when the user thought they were still drafting.
+console.log("# document registry");
+{
+  const D = await mod("../public/assets/js/docs/resources.js");
+  const S = await mod("../public/assets/js/docs/schema.js");
+  const R3 = await mod("../public/assets/js/master/resources.js");
+
+  check("registry holds the declared documents", D.DOCS.length >= 1, D.DOCS.length);
+  check("page ids are unique", new Set(D.DOCS.map((d) => d.page)).size === D.DOCS.length);
+  check("names are unique", new Set(D.DOCS.map((d) => d.name)).size === D.DOCS.length);
+
+  for (const d of D.DOCS) {
+    check(`${d.name}: idKey set`, typeof d.idKey === "string" && d.idKey.length > 0);
+    check(`${d.name}: has list columns`, d.columns.length > 0);
+    check(`${d.name}: has item columns`, d.itemColumns.length > 0);
+    check(`${d.name}: has header fields`, d.headerFields.length > 0);
+    check(`${d.name}: has item fields`, d.itemFields.length > 0);
+
+    // The list endpoint takes no sort parameter, so a column may not claim one.
+    check(`${d.name}: no column claims a sort key`, d.columns.every((c) => c.sort === undefined));
+
+    check(`${d.name}: statuses include DRAFT`, d.statuses.includes("DRAFT"));
+    check(`${d.name}: statuses include CONFIRMED`, d.statuses.includes("CONFIRMED"));
+    check(`${d.name}: statuses include CANCELLED`, d.statuses.includes("CANCELLED"));
+    check(`${d.name}: postedStatus is a known status`, d.statuses.includes(d.postedStatus), d.postedStatus);
+    check(
+      `${d.name}: every postedStatus is a known status`,
+      d.postedStatuses.every((v) => d.statuses.includes(v)),
+      d.postedStatuses.join(",")
+    );
+    check(
+      `${d.name}: postedStatuses contains postedStatus`,
+      d.postedStatuses.includes(d.postedStatus)
+    );
+    for (const st of d.statuses) {
+      check(`${d.name}: status ${st} has a label`, !!d.statusStyle[st]?.label, st);
+    }
+
+    // Refs resolve against master resources — that is where their options
+    // come from, and a name with no descriptor is a picker that stays empty.
+    for (const ref of [...d.headerRefs, ...d.itemRefs]) {
+      check(`${d.name}: ref ${ref.field} → known resource`, !!R3.MASTER_BY_NAME[ref.resource], ref.resource);
+    }
+    for (const f of [...d.headerFields, ...d.itemFields]) {
+      check(`${d.name}: field ${f.name} has a label`, !!f.label);
+      if (f.enumValues) check(`${d.name}: field ${f.name} declares enumKey`, !!f.enumKey, f.name);
+    }
+    for (const f of d.filters ?? []) {
+      const declared = f.resource ? !!R3.MASTER_BY_NAME[f.resource] : f.free || (f.options?.length ?? 0) > 0;
+      check(`${d.name}: filter ${f.param} has a source`, declared, JSON.stringify(f));
+    }
+  }
+
+  check("page id resolves back", D.DOCS.every((d) => D.docForPage(d.page) === d));
+  check("unknown page resolves to nothing", D.docForPage("nope") === undefined);
+
+  // ใบรับสินค้า specifics, straight from specs.go.
+  const rn = D.RECEIVE_NOTE;
+  check("receive-note path matches the Go spec name", rn.name === "receive-note");
+  check("receive-note ends at POSTED", rn.postedStatus === "POSTED");
+  check("receive-note items are keyed by sku_id", rn.itemRefs.some((r) => r.field === "sku_id"));
+  check("doc_no cannot be updated", rn.headerFields.find((f) => f.name === "doc_no")?.noUpdate === true);
+  check("qty is required", rn.itemFields.find((f) => f.name === "qty")?.required === true);
+  check("unit_cost is required", rn.itemFields.find((f) => f.name === "unit_cost")?.required === true);
+  check("trade_type reads the live enum", rn.headerFields.find((f) => f.name === "trade_type")?.enumKey === "vendor_trade_type");
+
+  // The lifecycle table. Every line here is a guard PenbunAPI enforces too;
+  // the screen's job is to never offer what the server would refuse.
+  const A = (st) => S.actions(st);
+  check("DRAFT can be edited", A("DRAFT").edit === true);
+  check("DRAFT can be confirmed", A("DRAFT").confirm === true);
+  check("DRAFT can be cancelled", A("DRAFT").cancel === true);
+  check("DRAFT can be deleted", A("DRAFT").remove === true);
+  check("DRAFT cannot be posted", A("DRAFT").post === false);
+
+  check("CONFIRMED can be posted", A("CONFIRMED").post === true);
+  check("CONFIRMED can be cancelled", A("CONFIRMED").cancel === true);
+  check("CONFIRMED cannot be edited", A("CONFIRMED").edit === false);
+  check("CONFIRMED cannot be deleted", A("CONFIRMED").remove === false);
+  check("CONFIRMED cannot be confirmed again", A("CONFIRMED").confirm === false);
+
+  for (const terminal of ["POSTED", "DELIVERED", "INVOICED", "CANCELLED"]) {
+    const a = A(terminal);
+    check(`${terminal} offers nothing`,
+      !a.edit && !a.confirm && !a.post && !a.cancel && !a.remove, JSON.stringify(a));
+  }
+
+  check("isPosted follows the spec, not a shared constant", S.isPosted(rn, "POSTED") && !S.isPosted(rn, "DELIVERED"));
+}
+
+console.log("# document view");
+{
+  const D = await mod("../public/assets/js/docs/resources.js");
+  const V2 = await mod("../public/assets/js/docs/view.js");
+  const rn = D.RECEIVE_NOTE;
+
+  const head = V2.listHead(rn);
+  check("list head has no sortable header", !head.includes("data-sortkey") && !head.includes("pb-th-sort"));
+  check("list head ends with a status column", head.includes("สถานะ"));
+
+  const rows = [
+    { receive_note_id: "RCV1", doc_no: "A/1", doc_date: "2026-08-20", vendor_name: "ก", trade_type: "BUY",
+      total_qty: 10, total_amount: 250, doc_status: "POSTED" },
+  ];
+  const body = V2.listBody(rn, rows);
+  check("row carries its business id", body.includes('data-id="RCV1"'));
+  check("status renders as its Thai label", body.includes("รับเข้าสต็อกแล้ว"), body.slice(0, 200));
+  check("list body escapes markup", !V2.listBody(rn, [{ receive_note_id: "<x>", doc_no: "<b>" }]).includes("<b>"));
+
+  const draft = V2.editorShell(rn, { header: { doc_status: "DRAFT", receive_note_id: "RCV1" }, items: [], creating: false });
+  check("draft renders editable lines", draft.includes("pb-doc-lines"));
+  check("draft offers ยืนยันเอกสาร", draft.includes('data-act="confirm"'));
+  check("draft offers delete", draft.includes('data-act="delete"'));
+  check("draft does not offer post", !draft.includes('data-act="post"'));
+
+  const confirmed = V2.editorShell(rn, { header: { doc_status: "CONFIRMED", receive_note_id: "RCV1" }, items: [], creating: false });
+  check("confirmed offers the post action", confirmed.includes('data-act="post"'));
+  check("confirmed uses the spec's post wording", confirmed.includes(rn.postLabel));
+  check("confirmed locks the header fieldset", confirmed.includes("<fieldset class=\"pb-formgrid\" id=\"pb-doc-header\" disabled>"));
+  check("confirmed hides the line editor", !confirmed.includes("pb-doc-lines"));
+
+  const posted = V2.editorShell(rn, { header: { doc_status: "POSTED", receive_note_id: "RCV1" }, items: [], creating: false });
+  check("posted offers no write action",
+    !posted.includes('data-act="post"') && !posted.includes('data-act="save"') &&
+    !posted.includes('data-act="cancel"') && !posted.includes('data-act="delete"'));
+
+  // No screen may offer a reversal until PUT /{doc}/{id}/reverse exists.
+  for (const [name, html] of [["draft", draft], ["confirmed", confirmed], ["posted", posted]]) {
+    check(`${name} offers no reversal`, !html.includes('data-act="reverse"'), name);
+  }
+
+  const creating = V2.editorShell(rn, { header: {}, items: [], creating: true });
+  check("new document starts editable", creating.includes("pb-doc-lines"));
+  check("new document has one blank line", (creating.match(/<tr data-line>/g) ?? []).length === 1);
+  check("new document says totals come later", creating.includes("ยอดรวมจะคำนวณเมื่อบันทึก"));
+}
+
+console.log("# document requests (stubbed fetch)");
+{
+  const REPO2 = await mod("../public/assets/js/docs/repo.js");
+  const D = await mod("../public/assets/js/docs/resources.js");
+  const rn = D.RECEIVE_NOTE;
+  const BASE4 = (await mod("../public/assets/js/core/config.js")).apiBase();
+
+  const realFetch3 = globalThis.fetch;
+  let calls = [];
+  const detail = () =>
+    new Response(
+      JSON.stringify({
+        status: "success", message: "ok", code: "OK", trace_id: "t",
+        data: { header: { receive_note_id: "RCV1", doc_status: "DRAFT" }, items: [] },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return detail();
+  };
+  const reset = () => (calls = []);
+  const query = () => new URL(calls[0].url).searchParams;
+
+  reset();
+  await REPO2.listDocs(rn, {
+    page: 2, limit: 25, status: "DRAFT", docNo: "A/1",
+    dateFrom: "2026-08-01", dateTo: "2026-08-31",
+    filters: { vendor_id: "VEN1", warehouse_code: "" },
+  });
+  check("list hits the document path", calls[0].url.startsWith(BASE4 + "/receive-note?"), calls[0].url);
+  check("status goes out as doc_status", query().get("doc_status") === "DRAFT");
+  check("search goes out as doc_no", query().get("doc_no") === "A/1");
+  check("date range is sent", query().get("date_from") === "2026-08-01" && query().get("date_to") === "2026-08-31");
+  check("declared filter is sent", query().get("vendor_id") === "VEN1");
+  check("empty filter is dropped", query().has("warehouse_code") === false);
+  // The endpoint accepts neither, and sending them would be a 400 waiting to happen.
+  check("never sends sort", query().has("sort") === false);
+  check("never sends q", query().has("q") === false);
+
+  reset();
+  await REPO2.getDoc(rn, "RCV 1/A");
+  check("business id is URL-encoded", calls[0].url.endsWith("/receive-note/RCV%201%2FA"), calls[0].url);
+
+  reset();
+  await REPO2.createDoc(rn, { doc_no: "A/1", items: [{ sku_id: "SKU1", qty: 1, unit_cost: 2 }] });
+  check("create posts to the collection", calls[0].init.method === "POST" && calls[0].url.endsWith("/receive-note"));
+  check("create carries its items", JSON.parse(calls[0].init.body).items.length === 1);
+
+  reset();
+  await REPO2.replaceDocItems(rn, "RCV1", [{ sku_id: "SKU1", qty: 1 }]);
+  check("items replace hits /items", calls[0].url.endsWith("/receive-note/RCV1/items"), calls[0].url);
+  check("items replace is a PUT", calls[0].init.method === "PUT");
+  check("items replace wraps the array", Array.isArray(JSON.parse(calls[0].init.body).items));
+
+  for (const [fn, suffix] of [["confirmDoc", "/confirm"], ["postDoc", "/post"], ["cancelDoc", "/cancel"]]) {
+    reset();
+    await REPO2[fn](rn, "RCV1");
+    check(`${fn} → ${suffix}`, calls[0].url.endsWith("/receive-note/RCV1" + suffix), calls[0].url);
+    check(`${fn} is a PUT`, calls[0].init.method === "PUT");
+    check(`${fn} sends no body`, calls[0].init.body === undefined, String(calls[0].init.body));
+  }
+
+  reset();
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return new Response(null, { status: 204 });
+  };
+  await REPO2.deleteDoc(rn, "RCV1");
+  check("delete uses DELETE on the row", calls[0].init.method === "DELETE" && calls[0].url.endsWith("/receive-note/RCV1"));
+
+  globalThis.fetch = realFetch3;
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
