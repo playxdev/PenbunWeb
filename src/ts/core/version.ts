@@ -16,7 +16,7 @@
 import { apiRoot } from "./config.js";
 
 /** Must equal `version` in package.json. */
-export const WEB_VERSION = "1.3.0-beta.1";
+export const WEB_VERSION = "1.4.0-beta.1";
 
 export interface ApiVersion {
   /** PenbunAPI's own version, e.g. "4.0.0". */

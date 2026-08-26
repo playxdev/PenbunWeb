@@ -1,8 +1,13 @@
-# PenbunWeb — beta 1.3.0
+# PenbunWeb — beta 1.4.0
 
 Front end for **Penbun System**, a wholesale and distribution system for books and stationery.
 Built with **pure HTML + CSS + TypeScript**, with no framework and no runtime dependency.
 
+> **New in 1.4.0:** the discount map — **กลุ่มส่วนลด** and **กฎส่วนลด**, the two screens behind
+> PenbunSQL v9's `tb_discount_group` and `tb_price_rule`. A customer's group is a real reference
+> now, not a text box that resolved against nothing. The database owns the arithmetic
+> (`UFN_RESOLVE_DISCOUNT`); these screens own the rules that feed it.
+>
 > **Scope of this release:** look and feel plus UX/UI, **real authentication**, and
 > **all 20 master-data screens reading and writing PenbunAPI for real**.
 > Sign-in, sign-out, token refresh and the forced first password change talk to PenbunAPI;
@@ -181,6 +186,12 @@ step on the same page, because PenbunAPI blocks every other route until it is do
 **Master data (20 screens + hub)** — real CRUD against PenbunAPI. Server-side search,
 filter, sort and paging; create/edit dialogs generated from the descriptor; soft delete with
 confirmation. See §6.
+
+**Discount map (new in 1.4.0)** — **กลุ่มส่วนลด** carries the customer groups; **กฎส่วนลด**
+carries one row per rule, scoped to a group, a customer, a route or a SKU. Rules that are not
+`บวกทับ` compete and the most specific one wins; `บวกทับ` rules add on top of that winner. The
+form shows all four target fields at once and each hint names the scope it belongs to — the
+database refuses a mismatch, so nothing invalid saves. Reasoning: `../DISCOUNT-MODEL.md`.
 
 **List pages (mock)** — searchable/filterable toolbars, sortable tables and pagination for
 stock, movements, transfers, the four document types, consignment, allocation history, users,
@@ -394,6 +405,8 @@ brings the old behaviour with it.
 - PenbunAPI integration beyond `/auth/*`, the 20 master resources and ใบรับสินค้า — the other
   three document types, stock, consignment, allocation, user and report screens still read
   `mock.ts`.
+- The resolved discount on an order line. `UFN_RESOLVE_DISCOUNT` exists and answers, but nothing
+  calls it yet: ใบสั่งขาย still takes a percentage typed by hand, with no provenance shown.
 - Reversing a posted document. PenbunAPI has no `reverse` endpoint yet, so no screen offers the
   button; a posted document is final in this release.
 - Document printing and virtualized tables.
@@ -406,4 +419,4 @@ See `../PENBUN-TODO.md` for what remains across PenbunSQL, PenbunAPI and PenbunW
 
 ---
 
-Penbun System · PenbunWeb beta 1.3.0 · PenbunAPI v4.0.0 · PenbunSQL v8.0.0
+Penbun System · PenbunWeb beta 1.4.0 · PenbunAPI v4.0.0 · PenbunSQL v9.0.0

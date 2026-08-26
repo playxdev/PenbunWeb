@@ -5,7 +5,7 @@
 
 import { esc } from "../core/format.js";
 
-export function brandMarkup(meta = "WEB BETA 1.3.0"): string {
+export function brandMarkup(meta = "WEB BETA 1.4.0"): string {
   return `
   <a class="pb-brand" href="/dashboard.html">
     <span class="pb-brand__mark">P</span>

@@ -1,8 +1,8 @@
 {
   "name": "penbunweb",
-  "version": "1.3.0-beta.1",
+  "version": "1.4.0-beta.1",
   "private": true,
-  "description": "PenbunWeb — HTML + CSS + TypeScript front end for Penbun System (UI beta, no API yet)",
+  "description": "PenbunWeb — HTML + CSS + TypeScript front end for Penbun System (UI beta; auth and master data talk to PenbunAPI)",
   "type": "module",
   "scripts": {
     "prebuild": "node -e \"require('node:fs').rmSync('public/assets/js',{recursive:true,force:true})\"",

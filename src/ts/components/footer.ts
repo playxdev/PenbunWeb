@@ -7,7 +7,7 @@ export function footerMarkup(): string {
   <footer class="pb-footer">
     <div class="pb-footer__inner">
       <span>© 2026 PENBUN SYSTEM</span>
-      <span class="pb-footer__version">PenbunWeb beta 1.3.0</span>
+      <span class="pb-footer__version">PenbunWeb beta 1.4.0</span>
     </div>
   </footer>`;
 }

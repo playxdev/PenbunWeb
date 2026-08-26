@@ -1,7 +1,7 @@
 # PenbunWeb — Design Concept & Prompt
 
 This document has three parts:
-**Sections 1–9** describe the design concept, current as of beta 1.3.0.
+**Sections 1–9** describe the design concept, current as of beta 1.4.0.
 **Section 10** covers the master-data screens, which are declared rather than designed one by one.
 **Section 11** is a ready-to-use prompt for generating new screens in the same system.
 
