@@ -694,6 +694,19 @@ console.log("# csp ↔ api origin");
   const csp = headers.match(/Content-Security-Policy:.*/)?.[0] ?? "";
   const connect = csp.match(/connect-src ([^;]+)/)?.[1] ?? "";
   check("CSP allows the API origin in connect-src", prod ? connect.includes(prod) : false, connect.trim());
+
+  // Nothing under assets/js or assets/css carries a content hash, so any
+  // lifetime at all leaves a returning visitor running the previous deploy —
+  // fresh HTML calling into a bundle that does not know the new routes.
+  const rule = (path) => {
+    const block = headers.split(/\n(?=\/)/).find((b) => b.startsWith(path + "\n"));
+    return block?.match(/Cache-Control:\s*(.+)/)?.[1]?.trim() ?? "";
+  };
+  for (const path of ["/*.html", "/assets/js/*", "/assets/css/*"]) {
+    const value = rule(path);
+    check(`${path} revalidates on every load`, /max-age=0/.test(value) && /must-revalidate/.test(value), value);
+  }
+  check("images keep a real cache lifetime", /max-age=[1-9]/.test(rule("/assets/image/*")), rule("/assets/image/*"));
 }
 
 /* --------------------------------------------------- version ↔ package.json */

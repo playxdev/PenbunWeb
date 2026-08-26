@@ -336,6 +336,20 @@ fails if it stops matching `PROD_ORIGIN` in `src/ts/core/config.ts`. Move the AP
 both have to change together — local development never notices, because
 `tools/serve.mjs` sends no CSP at all.
 
+### Caching and deploys
+
+No file under `assets/js` or `assets/css` carries a content hash — `main.js` is `main.js` in
+every build — so both revalidate on every load (`max-age=0, must-revalidate`) and answer 304
+when nothing changed. Give them a lifetime and a returning visitor keeps running the previous
+deploy: the HTML is fresh, the code behind it is not, and the page renders its own loading state
+forever because the old bundle does not know the new route. `npm test` holds the policy in place.
+
+**A Cloudflare zone in front of Pages can override all of it.** Browser Cache TTL rewrites
+`Cache-Control` on anything the edge caches; its default of 4 hours is what `www.phenbun.com`
+served while `penbunweb-1kq.pages.dev` — the same deployment with no zone in front — served
+3600 from this file. Set the zone's Caching → Configuration → Browser Cache TTL to **Respect
+Existing Headers**, or `_headers` is advisory only and every deploy is invisible for four hours.
+
 ---
 
 ## 8. Minimum Quality Already Covered

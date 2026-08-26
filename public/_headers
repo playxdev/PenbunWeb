@@ -19,8 +19,34 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://starfish-app-zrucf.ondigitalocean.app; base-uri 'self'; form-action 'self'
 
+# Cache policy.
+#
+# Nothing in assets/js or assets/css carries a content hash in its name:
+# `main.js` is `main.js` in every build. So any cache lifetime at all means a
+# returning visitor keeps running the previous deploy until it expires — the
+# HTML is fresh, the code behind it is not, and the symptom is a page that
+# renders its own loading state forever because the old bundle does not know
+# the new route.
+#
+# These two therefore revalidate on every load. That costs one conditional
+# request per file and answers 304 with no body whenever nothing changed,
+# which is the right trade for a build with no cache busting. Images and
+# fonts do not change under a fixed name, so they keep a real lifetime.
+#
+# A Cloudflare zone in front of Pages can override all of this: Browser Cache
+# TTL rewrites Cache-Control on anything the edge caches, and its default of
+# 4 hours is what www.phenbun.com served while penbunweb-1kq.pages.dev — the
+# same deployment, no zone in front — served what this file says. Set the zone
+# to "Respect Existing Headers", or the rules below are advisory only.
+
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/assets/*
-  Cache-Control: public, max-age=3600
+/assets/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/image/*
+  Cache-Control: public, max-age=604800
