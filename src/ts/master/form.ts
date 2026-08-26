@@ -26,6 +26,7 @@ import { esc } from "../core/format.js";
 import { icon } from "../core/icons.js";
 import { toast } from "../core/ui.js";
 import { MASTER_BY_NAME } from "./resources.js";
+import { values as enumOptions } from "../core/enums.js";
 import { createRow, forgetOptions, options, updateRow, type Option, type Row } from "./repo.js";
 import type { Field, MasterResource, Ref } from "./schema.js";
 
@@ -56,7 +57,9 @@ function fieldControl(f: Field, row: Row | undefined, mode: Mode): string {
 
   if (f.enumValues?.length) {
     const current = raw === null || raw === undefined ? "" : String(raw);
-    const opts = f.enumValues
+    // The CHECK constraint decides, not this build — see core/enums.ts.
+    const accepted = f.enumKey ? enumOptions(f.enumKey, f.enumValues) : f.enumValues;
+    const opts = accepted
       .map(
         (v) =>
           `<option value="${esc(v)}"${v === current ? " selected" : ""}>${esc(f.enumLabels?.[v] ?? v)}</option>`

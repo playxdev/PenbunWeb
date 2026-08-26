@@ -37,6 +37,12 @@ export interface Field {
   maxLen?: number;
   /** Renders a <select>; the values must match the CHECK constraint. */
   enumValues?: readonly string[];
+  /**
+   * Key into `GET /meta/enums` (`<table without tb_>_<column>`). When the
+   * endpoint answers, its list wins and `enumValues` is only the fallback —
+   * see core/enums.ts.
+   */
+  enumKey?: string;
   /** Thai labels for enumValues, keyed by value. */
   enumLabels?: Readonly<Record<string, string>>;
   min?: number;
@@ -74,6 +80,13 @@ export interface FilterDef {
   resource?: string;
   /** Fixed options — value plus Thai label. */
   options?: ReadonlyArray<{ value: string; label: string }>;
+  /**
+   * Same contract as Field.enumKey: the live list decides the options and
+   * `options` becomes the fallback. Labels come from `enumLabels`, because
+   * the endpoint answers with codes only.
+   */
+  enumKey?: string;
+  enumLabels?: Readonly<Record<string, string>>;
   /** No options at all: a free-text box (province, issue_no). */
   free?: boolean;
   /**

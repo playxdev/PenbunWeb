@@ -39,7 +39,17 @@ const DESC_FIELD = {
 
 const PROVINCE_FILTER: FilterDef = { param: "province", label: "จังหวัด", free: true };
 
-/** CK_tb_warehouse_type, CK_tb_route_type, CK_tb_vendor_trade_type of v7. */
+/**
+ * The three coded lists v7 enforces with a CHECK constraint.
+ *
+ * These arrays are the fallback, not the source: `GET /meta/enums` reads the
+ * constraints themselves and `core/enums.ts` prefers whatever it answers.
+ * They stay because a screen still has to render before that call returns —
+ * and because the labels are here, the endpoint answering with codes only.
+ * The key beside each one is `<table without tb_>_<column>`, which is how the
+ * endpoint names it.
+ */
+export const WAREHOUSE_TYPE_KEY = "warehouse_warehouse_type";
 const WAREHOUSE_TYPES = ["DC", "BRANCH", "RETURN", "DAMAGED", "PROVINCE", "INTERNATIONAL"] as const;
 const WAREHOUSE_TYPE_LABEL: Record<string, string> = {
   DC: "ศูนย์กระจายสินค้า",
@@ -50,6 +60,7 @@ const WAREHOUSE_TYPE_LABEL: Record<string, string> = {
   INTERNATIONAL: "คลังต่างประเทศ",
 };
 
+export const ROUTE_TYPE_KEY = "route_route_type";
 const ROUTE_TYPES = ["LEGACY_LINE", "REGION", "DAILY"] as const;
 const ROUTE_TYPE_LABEL: Record<string, string> = {
   LEGACY_LINE: "สายเดิม",
@@ -57,12 +68,21 @@ const ROUTE_TYPE_LABEL: Record<string, string> = {
   DAILY: "รายวัน",
 };
 
+export const TRADE_TYPE_KEY = "vendor_trade_type";
 const TRADE_TYPES = ["BUY", "CONSIGN"] as const;
 const TRADE_TYPE_LABEL: Record<string, string> = { BUY: "ซื้อขาด", CONSIGN: "ฝากขาย" };
 
-const enumFilter = (param: string, label: string, values: readonly string[], labels: Record<string, string>): FilterDef => ({
+const enumFilter = (
+  param: string,
+  label: string,
+  enumKey: string,
+  values: readonly string[],
+  labels: Record<string, string>
+): FilterDef => ({
   param,
   label,
+  enumKey,
+  enumLabels: labels,
   options: values.map((v) => ({ value: v, label: labels[v] ?? v })),
 });
 
@@ -305,7 +325,7 @@ export const WAREHOUSE: MasterResource = {
     { key: "allow_negative_stock", label: "ติดลบได้", kind: "bool", labels: { "true": "อนุญาต", "false": "—" } },
     STATUS_COL,
   ],
-  filters: [enumFilter("warehouse_type", "ประเภทคลัง", WAREHOUSE_TYPES, WAREHOUSE_TYPE_LABEL), PROVINCE_FILTER],
+  filters: [enumFilter("warehouse_type", "ประเภทคลัง", WAREHOUSE_TYPE_KEY, WAREHOUSE_TYPES, WAREHOUSE_TYPE_LABEL), PROVINCE_FILTER],
   refs: [{ field: "company_id", resource: "company", label: "บริษัท" }],
   fields: [
     { name: "warehouse_code", kind: "string", label: "รหัสคลัง", required: true, maxLen: 20, noUpdate: true },
@@ -315,6 +335,7 @@ export const WAREHOUSE: MasterResource = {
       kind: "string",
       label: "ประเภทคลัง",
       required: true,
+      enumKey: WAREHOUSE_TYPE_KEY,
       enumValues: WAREHOUSE_TYPES,
       enumLabels: WAREHOUSE_TYPE_LABEL,
     },
@@ -382,7 +403,7 @@ export const VENDOR: MasterResource = {
   ],
   filters: [
     { param: "vendor_type_id", label: "ประเภทคู่ค้า", resource: "vendor-type" },
-    enumFilter("trade_type", "รูปแบบการค้า", TRADE_TYPES, TRADE_TYPE_LABEL),
+    enumFilter("trade_type", "รูปแบบการค้า", TRADE_TYPE_KEY, TRADE_TYPES, TRADE_TYPE_LABEL),
     PROVINCE_FILTER,
   ],
   refs: [{ field: "vendor_type_id", resource: "vendor-type", label: "ประเภทคู่ค้า", required: true }],
@@ -393,6 +414,7 @@ export const VENDOR: MasterResource = {
       kind: "string",
       label: "รูปแบบการค้า",
       required: true,
+      enumKey: TRADE_TYPE_KEY,
       enumValues: TRADE_TYPES,
       enumLabels: TRADE_TYPE_LABEL,
       hint: "ฝากขายคิดเงินจ่ายจากยอดที่ขายได้จริง ไม่ใช่ยอดที่รับเข้า",
@@ -554,7 +576,7 @@ export const ROUTE: MasterResource = {
     STATUS_COL,
   ],
   filters: [
-    enumFilter("route_type", "ชนิดสาย", ROUTE_TYPES, ROUTE_TYPE_LABEL),
+    enumFilter("route_type", "ชนิดสาย", ROUTE_TYPE_KEY, ROUTE_TYPES, ROUTE_TYPE_LABEL),
     { param: "warehouse_id", label: "คลังต้นทาง", resource: "warehouse" },
   ],
   refs: [{ field: "warehouse_id", resource: "warehouse", label: "คลังต้นทาง" }],
@@ -566,6 +588,7 @@ export const ROUTE: MasterResource = {
       kind: "string",
       label: "ชนิดสาย",
       required: true,
+      enumKey: ROUTE_TYPE_KEY,
       enumValues: ROUTE_TYPES,
       enumLabels: ROUTE_TYPE_LABEL,
     },

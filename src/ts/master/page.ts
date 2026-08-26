@@ -19,6 +19,7 @@ import { esc } from "../core/format.js";
 import { icon } from "../core/icons.js";
 import { toast } from "../core/ui.js";
 import type { Session } from "../core/auth.js";
+import { loadEnums } from "../core/enums.js";
 import { deleteRow, forgetOptions, getRow, listRows, options, PAGE_SIZE, type ListQuery, type Row } from "./repo.js";
 import { MASTER_BY_NAME } from "./resources.js";
 import type { MasterResource } from "./schema.js";
@@ -457,8 +458,16 @@ class MasterScreen {
 }
 
 /** Entry point called by main.ts once the shell is mounted. */
-export function initMasterPage(r: MasterResource, user: Session): void {
+export async function initMasterPage(r: MasterResource, user: Session): Promise<void> {
   const root = document.getElementById("pb-page");
   if (!root) return;
+
+  // The enum lists have to be in hand before the first paint: the filter bar
+  // and the form both render their <select> synchronously, and re-rendering
+  // them a moment later would throw away a filter the user had already set.
+  // loadEnums never rejects and answers from the session cache after the
+  // first screen, so this waits on the network at most once per session.
+  if (!user.demo) await loadEnums();
+
   new MasterScreen(r, root, user.demo).start();
 }

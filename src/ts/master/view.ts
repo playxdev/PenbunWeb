@@ -13,6 +13,7 @@
  */
 
 import { icon } from "../core/icons.js";
+import { values as enumOptions } from "../core/enums.js";
 import { date, esc, money, pct, qty } from "../core/format.js";
 import type { Column, MasterResource } from "./schema.js";
 import { writable } from "./schema.js";
@@ -237,7 +238,15 @@ export function toolbar(r: MasterResource): string {
         return `<input class="pb-input pb-filter" type="search" data-filter="${esc(f.param)}"${list}
                        placeholder="${esc(f.label)}" aria-label="กรองตาม${esc(f.label)}" autocomplete="off">${datalist}`;
       }
-      const opts = (f.options ?? [])
+      // An enum filter offers what the database accepts today, not what this
+      // build was compiled with — see core/enums.ts.
+      const fixed = f.enumKey
+        ? enumOptions(f.enumKey, (f.options ?? []).map((o) => o.value)).map((v) => ({
+            value: v,
+            label: f.enumLabels?.[v] ?? v,
+          }))
+        : (f.options ?? []);
+      const opts = fixed
         .map((o) => `<option value="${esc(o.value)}">${esc(o.label)}</option>`)
         .join("");
       return `<select class="pb-select pb-filter" data-filter="${esc(f.param)}"
