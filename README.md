@@ -119,7 +119,7 @@ penbunweb/
 │  ├─ components/ brand · sidebar · nav-menu · topbar · theme-toggle · footer
 │  ├─ layouts/    app-layout.ts   ← wraps every page's content in the shell
 │  ├─ data/       mock.ts         ← sample data for the screens not yet wired
-│  ├─ pages/      dashboard.ts · settings.ts
+│  ├─ pages/      dashboard.ts · settings.ts · profile.ts
 │  ├─ main.ts        ← entry point for shell pages
 │  └─ standalone.ts  ← entry point for login/error pages
 ├─ tools/  gen_pages.py · gen_master_pages.mjs · gen_thai_address.mjs · serve.mjs · test.mjs
@@ -199,7 +199,17 @@ database refuses a mismatch, so nothing invalid saves. Reasoning: `../DISCOUNT-M
 stock, movements, transfers, the four document types, consignment, allocation history, users,
 and reports. These still read `mock.ts`.
 
-**Settings/profile** — forms, tabs, an RBAC permissions table, and active-device information.
+**Settings** — forms, tabs, and the “About system” card, which reports only what `GET /version`
+and this build can vouch for.
+
+**Profile** — the left card and the ข้อมูลผู้ใช้ tab read the signed-in session, so every box on
+them is one column of `tb_users`: `full_name`, `user_name`, `email`, `user_id`, `user_level`,
+`last_login_date`. Fields the table has no column for are not on the screen — a form that
+collects what nothing can store is a form that lies. The avatar is two letters taken from the
+username, first and last (`root` → `rt`, `user01` → `u1`), because `full_name` is nullable and
+Thai names have no capitals to lean on. Saving is still a stub: PenbunAPI v4 has no
+profile-update route. The สิทธิ์การใช้งาน and อุปกรณ์ที่ใช้งาน tabs are still mock — RBAC and
+session tables do not exist yet.
 
 **Error pages** — `401`, `403`, `404`, `500`, `502`, and `503`, with reference codes and working back/retry/copy actions.
 
@@ -218,6 +228,8 @@ and reports. These still read `mock.ts`.
 | ใบรับสินค้า | `src/ts/docs/*` | **Done** — list, editor, confirm, post, cancel, delete against the nine endpoints |
 | ใบส่งหนังสือ · ใบรับคืน · ใบส่งคืนคู่ค้า | `doc-order.html`, `doc-return.html`, `doc-vendor-return.html` | Open — same engine, one descriptor each, plus the rule each carries |
 | Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
+| Profile (read) | `src/ts/pages/profile.ts` | **Done** — rendered from the session `GET /auth/me` returns |
+| Profile (save) | `profile.html` → บันทึกการแก้ไข | Blocked — PenbunAPI has no profile-update route, only `/auth/me` and `/auth/change-password` |
 | Users | `users.html` | Blocked — PenbunAPI exposes only `PUT /users/{id}/unlock`; there is no user CRUD |
 | Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v8 still has none |
 | Enum options | `src/ts/core/enums.ts` | **Done** — `GET /meta/enums`; the arrays in `master/resources.ts` are now only a fallback |

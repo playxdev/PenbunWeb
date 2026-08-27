@@ -34,20 +34,19 @@ export interface Session {
   /** Thai label for user_level, for display only. Authorization is the API's job. */
   role: string;
   level: string;
-  branch: string;
   initials: string;
   email: string;
+  /** ISO string from tb_users.last_login_date, or "" when never recorded. */
+  lastLoginDate: string;
   mustChangePassword: boolean;
   demo: boolean;
 }
 
 /**
- * PenbunSQL v7 has no branch on tb_users and PenbunAPI v4 has only
- * ADMIN / USER (see mw.RequireLevel). Both are display-only placeholders and
- * must be replaced — not extended — once tb_role lands.
+ * PenbunAPI v4 knows only ADMIN / USER (see mw.RequireLevel). The label is
+ * display-only — authorization stays the API's job — and must be replaced,
+ * not extended, once tb_role lands.
  */
-const DEFAULT_BRANCH = "ศูนย์กระจายสินค้า (DC)";
-
 const ROLE_LABEL: Record<string, string> = {
   ADMIN: "ผู้ดูแลระบบ",
   USER: "ผู้ใช้งาน",
@@ -64,18 +63,19 @@ const DEMO_USER: ApiUser = {
 };
 
 /**
- * Two letters for the avatar.
+ * Two letters for the avatar, taken from the username: first character and
+ * last. root -> rt, user01 -> u1, admin03 -> a3.
  *
- * Thai names have no capitals to lean on, so take the first character of the
- * first two words. Array.from, not [0], so a name starting with a surrogate
- * pair is not cut in half.
+ * The username is used, not the full name — full_name is nullable in
+ * tb_users and Thai names have no capitals to lean on, so a name-derived
+ * avatar is neither stable nor guaranteed to exist. Array.from, not [0], so
+ * a username starting with a surrogate pair is not cut in half.
  */
-export function initialsOf(name: string, fallback: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  const letters = words.slice(0, 2).map((w) => Array.from(w)[0] ?? "");
-  const joined = letters.join("");
-  if (joined) return joined;
-  return Array.from(fallback.toUpperCase()).slice(0, 2).join("") || "?";
+export function initialsOf(username: string): string {
+  const chars = Array.from(username.trim());
+  if (chars.length === 0) return "?";
+  if (chars.length === 1) return chars[0]!;
+  return `${chars[0]}${chars[chars.length - 1]}`;
 }
 
 function toSession(u: ApiUser, demo: boolean): Session {
@@ -86,9 +86,9 @@ function toSession(u: ApiUser, demo: boolean): Session {
     username: u.user_name,
     role: ROLE_LABEL[u.user_level] ?? u.user_level,
     level: u.user_level,
-    branch: DEFAULT_BRANCH,
-    initials: initialsOf(name, u.user_name),
+    initials: initialsOf(u.user_name),
     email: u.email ?? "",
+    lastLoginDate: u.last_login_date ?? "",
     mustChangePassword: u.must_change_password,
     demo,
   };

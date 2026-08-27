@@ -45,6 +45,9 @@ async function boot(): Promise<void> {
   } else if (page === "settings") {
     const { initSettings } = await import("./pages/settings.js");
     void initSettings(user);
+  } else if (page === "profile") {
+    const { initProfile } = await import("./pages/profile.js");
+    initProfile(user);
   } else if (page === "master") {
     const { initMasterHub } = await import("./master/hub.js");
     initMasterHub();

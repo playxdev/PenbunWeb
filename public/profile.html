@@ -51,15 +51,13 @@
     <div class="pb-col-4">
       <div class="pb-card">
         <div class="pb-card__body" style="text-align:center">
-          <span class="pb-avatar pb-avatar--lg pb-avatar--brand" style="margin:0 auto">จศ</span>
-          <h3 style="margin-top:var(--pb-3)">จักรพงษ์ ศรีวิไล</h3>
-          <div class="pb-muted" style="font-size:var(--pb-fs-sm)">jack@penbun.local</div>
-          <div style="margin-top:var(--pb-3)"><span class="pb-badge pb-badge--brand">ผู้ดูแลระบบ</span></div>
-          <button class="pb-btn pb-btn--secondary pb-btn--sm" style="margin-top:var(--pb-4)"
-                  data-stub="การอัปโหลดรูปจะมาในรุ่นถัดไป">เปลี่ยนรูปโปรไฟล์</button>
+          <span class="pb-avatar pb-avatar--lg pb-avatar--brand" style="margin:0 auto" id="pf-avatar"></span>
+          <h3 style="margin-top:var(--pb-3)" id="pf-name"></h3>
+          <div class="pb-muted" style="font-size:var(--pb-fs-sm)" id="pf-mail"></div>
+          <div style="margin-top:var(--pb-3)"><span class="pb-badge pb-badge--brand" id="pf-level"></span></div>
         </div>
         <div class="pb-card__foot">
-          <span>เข้าใช้ล่าสุด วันนี้ 08:02 น.</span>
+          <span id="pf-last"></span>
         </div>
       </div>
     </div>
@@ -76,28 +74,21 @@
           <div class="pb-grid">
             <div class="pb-col-6"><div class="pb-field">
               <label class="pb-label" for="p-name">ชื่อ–สกุล</label>
-              <input class="pb-input" id="p-name" value="จักรพงษ์ ศรีวิไล">
+              <input class="pb-input" id="p-name" maxlength="150">
             </div></div>
             <div class="pb-col-6"><div class="pb-field">
               <label class="pb-label" for="p-user">ชื่อผู้ใช้</label>
-              <input class="pb-input" id="p-user" value="jack" readonly>
+              <input class="pb-input" id="p-user" readonly>
               <span class="pb-hint">ชื่อผู้ใช้เปลี่ยนไม่ได้ ผูกกับบันทึกทุกรายการในระบบ</span>
             </div></div>
             <div class="pb-col-6"><div class="pb-field">
               <label class="pb-label" for="p-mail">อีเมล</label>
-              <input class="pb-input" id="p-mail" type="email" value="jack@penbun.local">
+              <input class="pb-input" id="p-mail" type="email" maxlength="100">
             </div></div>
             <div class="pb-col-6"><div class="pb-field">
-              <label class="pb-label" for="p-tel">โทรศัพท์</label>
-              <input class="pb-input pb-num" id="p-tel" value="081-234-5678">
-            </div></div>
-            <div class="pb-col-6"><div class="pb-field">
-              <label class="pb-label" for="p-branch">คลัง/สาขาหลัก</label>
-              <select class="pb-select" id="p-branch"><option>DC-01 ศูนย์กระจายสินค้า</option><option>WH-02 คลังสาขาบางแค</option></select>
-            </div></div>
-            <div class="pb-col-6"><div class="pb-field">
-              <label class="pb-label" for="p-lang">ภาษา</label>
-              <select class="pb-select" id="p-lang"><option>ไทย</option><option>English</option></select>
+              <label class="pb-label" for="p-uid">รหัสผู้ใช้</label>
+              <input class="pb-input" id="p-uid" readonly>
+              <span class="pb-hint">tb_users.user_id ระบบออกให้เอง</span>
             </div></div>
           </div>
         </div>

@@ -192,10 +192,11 @@ console.log("# auth / tokens / api");
   check("clear removes the beta 1.3.0 key", mem.has("penbun.session") === false);
 
   /* auth mapping */
-  check("initials take one letter per word", AUTH.initialsOf("จักรพงษ์ ศรีวิไล", "jack") === "จศ", AUTH.initialsOf("จักรพงษ์ ศรีวิไล", "jack"));
-  check("initials of a single word", AUTH.initialsOf("Somchai", "x") === "S", AUTH.initialsOf("Somchai", "x"));
-  check("initials fall back to the username", AUTH.initialsOf("", "jack") === "JA", AUTH.initialsOf("", "jack"));
-  check("initials never return empty", AUTH.initialsOf("", "") === "?");
+  check("initials take the first and last letter of the username", AUTH.initialsOf("root") === "rt", AUTH.initialsOf("root"));
+  check("initials keep a trailing digit", AUTH.initialsOf("user01") === "u1", AUTH.initialsOf("user01"));
+  check("initials of admin03", AUTH.initialsOf("admin03") === "a3", AUTH.initialsOf("admin03"));
+  check("initials of a one-letter username", AUTH.initialsOf("k") === "k", AUTH.initialsOf("k"));
+  check("initials never return empty", AUTH.initialsOf("") === "?");
 
   T.store(pair);
   const s = AUTH.session();
