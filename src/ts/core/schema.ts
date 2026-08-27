@@ -46,6 +46,12 @@ export interface Field {
   hint?: string;
   /** Render as a textarea rather than a single-line input. */
   multiline?: boolean;
+  /**
+   * Render as <input type="password">. Write-only by nature: nothing reads
+   * one back, so a secret field belongs to create forms only — the API has no
+   * endpoint that returns what was typed here.
+   */
+  secret?: boolean;
   /** Field spans both form columns. */
   wide?: boolean;
   /**

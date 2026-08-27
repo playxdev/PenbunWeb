@@ -199,11 +199,16 @@ database refuses a mismatch, so nothing invalid saves. Reasoning: `../DISCOUNT-M
 stock, movements, transfers, the four document types, consignment, allocation history,
 and reports. These still read `mock.ts`.
 
-**ผู้ใช้และสิทธิ์** — reads `GET /user`, which PenbunAPI mounts read-only and ADMIN-only, so the
-screen lists, searches, filters (สิทธิ์ · สถานะ · ล็อก) and pages, but offers no form. Its one
-write is the one the API has: `PUT /users/{user_id}/unlock`. A non-ADMIN account gets the 403
-spelled out rather than an empty table. Columns come from `vw_users` (PenbunSQL v11), which
-withholds `user_password` and `counting_password_fail`.
+**ผู้ใช้และสิทธิ์** — reads `GET /users`, which PenbunAPI mounts read-only and ADMIN-only, so
+search, the three filters (สิทธิ์ · สถานะ · ล็อก) and paging all run on the server. It writes
+through the two endpoints that exist outside that engine: `POST /users` behind เพิ่มผู้ใช้, and
+`PUT /users/{user_id}/unlock` behind ปลดล็อก. A non-ADMIN account gets the 403 spelled out rather
+than an empty table. Columns come from `vw_users` (PenbunSQL v11), which withholds
+`user_password` and `counting_password_fail`.
+
+The create form asks for a starting password and nothing else about it: `tb_users.status_change_pw`
+defaults to 1, so whoever is created must replace it at first sign-in. There is no edit form —
+editing a user means editing `user_level`, and neither side has an endpoint for that yet.
 
 **Settings** — forms, tabs, and the “About system” card, which reports only what `GET /version`
 and this build can vouch for.
@@ -236,9 +241,10 @@ session tables do not exist yet.
 | Stock · consignment · allocation | `stock.html`, `movements.html`, … | Open — `/stock/*`, `/consign/*`, `/allocation/*` |
 | Profile (read) | `src/ts/pages/profile.ts` | **Done** — rendered from the session `GET /auth/me` returns |
 | Profile (save) | `profile.html` → บันทึกการแก้ไข | Blocked — PenbunAPI has no profile-update route, only `/auth/me` and `/auth/change-password` |
-| Users (list) | `src/ts/pages/users.ts` | **Done** — `GET /user`, read-only and ADMIN-only |
+| Users (list) | `src/ts/pages/users.ts` | **Done** — `GET /users`, read-only and ADMIN-only |
+| Create a user | `users.html` → เพิ่มผู้ใช้ | **Done** — `POST /users`, bcrypt on the server |
 | Unlock a user | `users.html` → ปลดล็อก | **Done** — `PUT /users/{user_id}/unlock` |
-| User create/edit | — | Blocked — PenbunAPI has no user CRUD; passwords and levels must not go through the generic engine |
+| Edit / delete a user | — | Blocked — PenbunAPI has no endpoint; `user_level` decides who may write anything at all |
 | Permission-based menu | `src/ts/core/nav.ts` | Blocked — needs role/permission tables; PenbunSQL v8 still has none |
 | Enum options | `src/ts/core/enums.ts` | **Done** — `GET /meta/enums`; the arrays in `master/resources.ts` are now only a fallback |
 | Version number | `settings.html`, “About system” | **Done** — `GET /version`, plus `WEB_VERSION` in `core/version.ts` |

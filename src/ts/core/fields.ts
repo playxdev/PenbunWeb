@@ -102,6 +102,13 @@ export function fieldControl(f: Field, row: Row | undefined, mode: Mode): string
       value="${esc(dateInputValue(raw))}"${disabled}>`;
   }
 
+  if (f.secret) {
+    // autocomplete="new-password" so the browser offers to generate one
+    // rather than filling in the administrator's own saved password.
+    return `<input class="pb-input" type="password" id="${id}" data-field="${esc(f.name)}"
+      autocomplete="new-password"${f.maxLen ? ` maxlength="${f.maxLen}"` : ""}${disabled}>`;
+  }
+
   const address = f.address ? ` data-address="${esc(f.address)}"` : "";
   return `<input class="pb-input" type="text" id="${id}" data-field="${esc(f.name)}"${address}
     value="${esc(raw ?? "")}"${f.maxLen ? ` maxlength="${f.maxLen}"` : ""} autocomplete="off"${disabled}>`;
