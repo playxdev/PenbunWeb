@@ -21,6 +21,7 @@ import { icon } from "../core/icons.js";
 import { toast } from "../core/ui.js";
 import type { Session } from "../core/auth.js";
 import { loadEnums } from "../core/enums.js";
+import { loadPermissions } from "../core/permissions.js";
 import { deleteRow, forgetOptions, getRow, listRows, options, PAGE_SIZE, type ListQuery, type Row } from "./repo.js";
 import { MASTER_BY_NAME } from "./resources.js";
 import type { MasterResource } from "./schema.js";
@@ -149,14 +150,15 @@ class MasterScreen {
   constructor(
     private readonly r: MasterResource,
     root: HTMLElement,
-    private readonly demo: boolean
+    private readonly demo: boolean,
+    private readonly level: string
   ) {
     this.root = root;
     this.state = readState(r);
   }
 
   start(): void {
-    this.root.innerHTML = pageShell(this.r);
+    this.root.innerHTML = pageShell(this.r, this.level);
     this.applyStateToControls();
     this.wire();
     void this.fillFilterOptions();
@@ -271,8 +273,9 @@ class MasterScreen {
     this.table().innerHTML = `<table class="pb-table">${tableHead(
       this.r,
       this.state.sort,
-      this.state.asc
-    )}${skeletonRows(this.r)}</table>`;
+      this.state.asc,
+      this.level
+    )}${skeletonRows(this.r, this.level)}</table>`;
 
     const query: ListQuery = {
       page: this.state.page,
@@ -290,15 +293,16 @@ class MasterScreen {
       this.rows = res.items;
 
       if (res.items.length === 0) {
-        this.table().innerHTML = emptyState(this.r, isFiltered(this.state));
+        this.table().innerHTML = emptyState(this.r, isFiltered(this.state), this.level);
         this.foot(0, res.total, 0);
         return;
       }
       this.table().innerHTML = `<table class="pb-table">${tableHead(
         this.r,
         this.state.sort,
-        this.state.asc
-      )}${tableBody(this.r, res.items)}</table>`;
+        this.state.asc,
+        this.level
+      )}${tableBody(this.r, res.items, this.level)}</table>`;
       this.foot(res.items.length, res.total, res.total_pages);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -465,7 +469,9 @@ class MasterScreen {
       toast("โหมดสาธิตแก้ไขข้อมูลไม่ได้", "เข้าสู่ระบบด้วยบัญชีจริงเพื่อบันทึกข้อมูล", "info");
       return false;
     }
-    if (!writable(this.r)) return false;
+    // ปุ่มเขียนถูกซ่อนไปแล้วสำหรับผู้ใช้ที่แก้ไม่ได้ ด่านนี้กันเส้นทางที่เหลือ
+    // เช่น คีย์ลัดหรือมาร์กอัปเก่าที่ค้างอยู่ในหน้าจอ
+    if (!writable(this.r, this.level)) return false;
     return true;
   }
 }
@@ -480,7 +486,11 @@ export async function initMasterPage(r: MasterResource, user: Session): Promise<
   // them a moment later would throw away a filter the user had already set.
   // loadEnums never rejects and answers from the session cache after the
   // first screen, so this waits on the network at most once per session.
-  if (!user.demo) await loadEnums();
+  // Both are needed before the first paint and neither rejects: the filter bar
+  // renders its <select> synchronously, and the toolbar decides in the same
+  // breath whether this user gets a "เพิ่ม" button. One round trip, not two
+  // renders. A demo session has no API to ask and stays on the fallbacks.
+  if (!user.demo) await Promise.all([loadEnums(), loadPermissions()]);
 
-  new MasterScreen(r, root, user.demo).start();
+  new MasterScreen(r, root, user.demo, user.level).start();
 }

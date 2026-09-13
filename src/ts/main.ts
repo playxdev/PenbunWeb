@@ -12,6 +12,7 @@
 
 import { initTheme } from "./core/theme.js";
 import { requireSession, validateSession } from "./core/auth.js";
+import { mayOpen, NAV_INDEX } from "./core/nav.js";
 import { mountAppLayout } from "./layouts/app-layout.js";
 import { initUI, toast } from "./core/ui.js";
 import { WEB_VERSION } from "./core/version.js";
@@ -34,10 +35,24 @@ async function boot(): Promise<void> {
     return;
   }
 
+  const page = document.getElementById("pb-page")?.dataset.page;
+
+  // Hiding a menu entry is not a guard — /users.html still opens when the URL
+  // is typed or bookmarked, and the screen would then paint an empty table
+  // around the API's 403. NAV_INDEX carries the same `minLevel` the sidebar
+  // filters on, so one check here covers every declared screen.
+  //
+  // This is convenience, not authorization: PenbunAPI enforces user_level on
+  // the routes themselves and stays the only thing standing between a USER and
+  // another user's row.
+  const entry = page ? NAV_INDEX[page] : undefined;
+  if (entry && !mayOpen(entry, user.level)) {
+    location.replace("/dashboard.html");
+    return;
+  }
+
   mountAppLayout(user);
   initUI();
-
-  const page = document.getElementById("pb-page")?.dataset.page;
 
   if (page === "dashboard") {
     const { initDashboard } = await import("./pages/dashboard.js");
@@ -53,7 +68,7 @@ async function boot(): Promise<void> {
     initUsers(user);
   } else if (page === "master") {
     const { initMasterHub } = await import("./master/hub.js");
-    initMasterHub();
+    await initMasterHub(user);
   } else {
     // Document screens are declared the same way, from docs/resources.ts —
     // one descriptor per spec in PenbunAPI's document engine.

@@ -13,11 +13,11 @@ import { navMenuMarkup } from "./nav-menu.js";
 
 export const SIDEBAR_KEY = "penbun.sidebar";
 
-export function sidebarMarkup(active: string): string {
+export function sidebarMarkup(active: string, level: string): string {
   return `
   <aside class="pb-sidebar" id="pb-sidebar">
     ${brandMarkup()}
-    <nav class="pb-nav" aria-label="เมนูหลัก">${navMenuMarkup(active)}</nav>
+    <nav class="pb-nav" aria-label="เมนูหลัก">${navMenuMarkup(active, level)}</nav>
     <div class="pb-sidebar__foot">
       <button class="pb-collapsebtn" data-sidebar-collapse aria-expanded="false" aria-controls="pb-sidebar">
         ${icon("panel")}

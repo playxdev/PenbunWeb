@@ -9,6 +9,8 @@
 
 import { esc } from "../core/format.js";
 import { icon } from "../core/icons.js";
+import type { Session } from "../core/auth.js";
+import { loadPermissions } from "../core/permissions.js";
 import { MASTERS } from "./resources.js";
 import { writable } from "./schema.js";
 import type { MasterResource } from "./schema.js";
@@ -16,21 +18,25 @@ import type { MasterResource } from "./schema.js";
 /** Display order of the groups. Anything unlisted is appended. */
 const GROUP_ORDER = ["ข้อมูลพื้นฐาน", "สินค้าและสต็อก", "คู่ค้า", "การจัดจำหน่าย"];
 
-const card = (m: MasterResource): string =>
+const card = (m: MasterResource, level: string): string =>
   `<a class="pb-mastercard" href="/${esc(m.page)}.html">
     <span class="pb-mastercard__icon">${icon(m.icon)}</span>
     <span class="pb-mastercard__text">
       <span class="pb-mastercard__title">${esc(m.label)}</span>
       <span class="pb-mastercard__sub">${esc(m.subtitle)}</span>
       <span class="pb-mastercard__meta"><span class="pb-mono">/${esc(m.name)}</span>${
-        writable(m) ? "" : ' · <span class="pb-muted">อ่านอย่างเดียว</span>'
+        writable(m, level) ? "" : ' · <span class="pb-muted">อ่านอย่างเดียว</span>'
       }</span>
     </span>
   </a>`;
 
-export function initMasterHub(): void {
+export async function initMasterHub(user: Session): Promise<void> {
   const root = document.getElementById("pb-page");
   if (!root) return;
+
+  // The cards say "อ่านอย่างเดียว" for anything this user cannot edit, so the
+  // answer has to be in hand before they are drawn.
+  if (!user.demo) await loadPermissions();
 
   const groups = [...new Set(MASTERS.map((m) => m.group))].sort(
     (a, b) => (GROUP_ORDER.indexOf(a) + 1 || 99) - (GROUP_ORDER.indexOf(b) + 1 || 99)
@@ -38,7 +44,9 @@ export function initMasterHub(): void {
 
   const sections = groups
     .map((g) => {
-      const items = MASTERS.filter((m) => m.group === g).map(card).join("");
+      const items = MASTERS.filter((m) => m.group === g)
+        .map((m) => card(m, user.level))
+        .join("");
       return `<section class="pb-card">
         <div class="pb-card__head"><div>
           <h2 class="pb-card__title">${esc(g)}</h2>

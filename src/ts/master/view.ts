@@ -51,7 +51,7 @@ function cell(r: MasterResource, col: Column, row: Record<string, unknown>, firs
 
 /* ------------------------------------------------------------------ table */
 
-export function tableHead(r: MasterResource, sort: string | undefined, asc: boolean): string {
+export function tableHead(r: MasterResource, sort: string | undefined, asc: boolean, level: string): string {
   const cols = r.columns
     .map((c, i) => {
       const num = NUMERIC_KINDS.has(c.kind ?? "") && i > 0 ? " data-num" : "";
@@ -64,16 +64,16 @@ export function tableHead(r: MasterResource, sort: string | undefined, asc: bool
         <button type="button" class="pb-th-btn">${esc(c.label)}</button></th>`;
     })
     .join("");
-  const actions = writable(r) ? '<th class="pb-col-actions"><span class="pb-visually-hidden">การจัดการ</span></th>' : "";
+  const actions = writable(r, level) ? '<th class="pb-col-actions"><span class="pb-visually-hidden">การจัดการ</span></th>' : "";
   return `<thead><tr>${cols}${actions}</tr></thead>`;
 }
 
-export function tableBody(r: MasterResource, rows: Array<Record<string, unknown>>): string {
+export function tableBody(r: MasterResource, rows: Array<Record<string, unknown>>, level: string): string {
   const body = rows
     .map((row) => {
       const id = rowId(r, row);
       const cells = r.columns.map((c, i) => cell(r, c, row, i === 0)).join("");
-      const actions = writable(r)
+      const actions = writable(r, level)
         ? `<td class="pb-col-actions"><div class="pb-rowacts">
              <button class="pb-iconbtn pb-iconbtn--sm" type="button" data-act="edit" data-id="${esc(id)}"
                      title="แก้ไข" aria-label="แก้ไข ${esc(id)}">${icon("pencil")}</button>
@@ -87,20 +87,21 @@ export function tableBody(r: MasterResource, rows: Array<Record<string, unknown>
   return `<tbody>${body}</tbody>`;
 }
 
-const colCount = (r: MasterResource): number => r.columns.length + (writable(r) ? 1 : 0);
+const colCount = (r: MasterResource, level: string): number => r.columns.length + (writable(r, level) ? 1 : 0);
 
-export const skeletonRows = (r: MasterResource, count = 6): string => skeletonBody(colCount(r), count);
+export const skeletonRows = (r: MasterResource, level: string, count = 6): string =>
+  skeletonBody(colCount(r, level), count);
 
 /* ----------------------------------------------------------------- states */
 
-export function emptyState(r: MasterResource, filtered: boolean): string {
+export function emptyState(r: MasterResource, filtered: boolean, level: string): string {
   const title = filtered ? "ไม่พบรายการที่ตรงกับเงื่อนไข" : `ยังไม่มี${r.label}ในระบบ`;
   const text = filtered
     ? "ลองลดเงื่อนไขการค้นหา หรือล้างตัวกรองเพื่อดูรายการทั้งหมด"
     : `เพิ่ม${r.label}รายการแรกเพื่อให้หน้าจออื่นเรียกใช้ได้`;
   const action = filtered
     ? '<button class="pb-btn pb-btn--secondary pb-btn--sm" type="button" data-act="clear">ล้างตัวกรอง</button>'
-    : writable(r)
+    : writable(r, level)
       ? `<button class="pb-btn pb-btn--primary pb-btn--sm" type="button" data-act="create">เพิ่ม${esc(r.label)}</button>`
       : "";
   return `<div class="pb-empty">
@@ -172,8 +173,8 @@ export function toolbar(r: MasterResource): string {
 
 /* ------------------------------------------------------------- page shell */
 
-export function pageShell(r: MasterResource): string {
-  const create = writable(r)
+export function pageShell(r: MasterResource, level: string): string {
+  const create = writable(r, level)
     ? `<button class="pb-btn pb-btn--primary" type="button" data-act="create">เพิ่ม${esc(r.label)}</button>`
     : `<span class="pb-badge pb-badge--muted">อ่านอย่างเดียว</span>`;
 

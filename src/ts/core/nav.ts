@@ -12,6 +12,14 @@ export interface NavItem {
   icon: IconName;
   count?: number;
   alert?: boolean;
+  /**
+   * Lowest `user_level` allowed to open the screen. Omit = every signed-in
+   * user. This mirrors `RequireLevel` on the matching PenbunAPI resource and
+   * hides a menu entry that would answer 403 — it is not the authorization
+   * itself, which stays on the server. A screen listed here with `minLevel`
+   * must also be guarded in main.ts, or the URL still opens when typed.
+   */
+  minLevel?: string;
 }
 
 export interface NavGroup {
@@ -70,7 +78,7 @@ export const NAV: NavGroup[] = [
     label: "ระบบ",
     items: [
       { id: "master", label: "ข้อมูลพื้นฐาน", href: "/master.html", icon: "apps" },
-      { id: "users", label: "ผู้ใช้และสิทธิ์", href: "/users.html", icon: "shield" },
+      { id: "users", label: "ผู้ใช้และสิทธิ์", href: "/users.html", icon: "shield", minLevel: "ADMIN" },
       { id: "settings", label: "ตั้งค่าระบบ", href: "/settings.html", icon: "settings" },
     ],
   },
@@ -103,4 +111,21 @@ export const NAV_INDEX: Record<string, NavItem> = Object.fromEntries(
 
 export function groupOf(id: string): string | undefined {
   return NAV.find((g) => g.items.some((i) => i.id === id))?.label;
+}
+
+/**
+ * May a user of this level open the screen?
+ *
+ * PenbunAPI v4 has two levels and ADMIN is the higher one, so this is an
+ * equality test rather than a ranking. When tb_role lands, the whole idea of
+ * `minLevel` is replaced — not extended with a third string.
+ */
+export const mayOpen = (item: NavItem, level: string): boolean =>
+  item.minLevel === undefined || item.minLevel === level;
+
+/** NAV with the groups this level may not open removed, empty groups dropped. */
+export function navFor(level: string): NavGroup[] {
+  return NAV.map((g) => ({ label: g.label, items: g.items.filter((i) => mayOpen(i, level)) })).filter(
+    (g) => g.items.length > 0
+  );
 }

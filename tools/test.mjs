@@ -458,32 +458,43 @@ console.log("# master view");
       warehouse_type: "DC", province: "นนทบุรี", company_name: null,
       is_main_dc: true, allow_negative_stock: false, is_active: true },
   ];
-  const body = V.tableBody(wh, rows);
+  const body = V.tableBody(wh, rows, "ADMIN");
   check("row carries its business id", body.includes('data-id="WH000001"'), body.slice(0, 80));
   check("coded value renders its Thai label", body.includes("ศูนย์กระจายสินค้า"));
   check("false bool falls back to the blank label", body.includes("—"));
   check("null cell is not printed as null", !body.includes(">null<"), body);
   check("writable resource gets row actions", body.includes('data-act="delete"'));
+  // PenbunAPI limits every master write to ADMIN (crud.Resource.RequireLevelWrite),
+  // so a USER who can read the table must not be shown a button that answers 403.
+  check("USER gets no row actions on a writable resource",
+    !V.tableBody(wh, rows, "USER").includes("data-act="), V.tableBody(wh, rows, "USER").slice(0, 120));
 
-  const injected = V.tableBody(wh, [{ ...rows[0], warehouse_name: '<img src=x onerror="alert(1)">' }]);
+  const injected = V.tableBody(wh, [{ ...rows[0], warehouse_name: '<img src=x onerror="alert(1)">' }], "ADMIN");
   check("cell content is escaped", !injected.includes("<img"), injected.slice(0, 200));
 
   // Book writes go to internal/domain/book, not the CRUD engine, but they go
   // to the same path — so the screen is writable. A descriptor that really is
   // read-only must offer nothing to click.
   const book = R.MASTER_BY_NAME["book"];
-  check("book screen offers row actions", V.tableBody(book, [{ book_id: "BK1", book_name: "x" }]).includes("data-act="));
+  check("book screen offers row actions",
+    V.tableBody(book, [{ book_id: "BK1", book_name: "x" }], "ADMIN").includes("data-act="));
   check("read-only resource gets no row actions",
-    !V.tableBody({ ...book, readOnly: true }, [{ book_id: "BK1", book_name: "x" }]).includes("data-act="));
+    !V.tableBody({ ...book, readOnly: true }, [{ book_id: "BK1", book_name: "x" }], "ADMIN").includes("data-act="));
 
-  const head = V.tableHead(wh, "code", true);
+  const head = V.tableHead(wh, "code", true, "ADMIN");
   check("active sort column is marked ascending", head.includes('aria-sort="ascending"'));
   check("sortable header carries its key", head.includes('data-sortkey="code"'));
   // core/ui.ts owns th[data-sort]; a master table sorts on the server.
   check("master header avoids the client-side sort hook", !/<th[^>]*\sdata-sort[=\s>]/.test(head), head);
 
-  check("empty list offers the primary action", V.emptyState(wh, false).includes('data-act="create"'));
-  check("filtered empty list offers a way back", V.emptyState(wh, true).includes('data-act="clear"'));
+  check("empty list offers the primary action", V.emptyState(wh, false, "ADMIN").includes('data-act="create"'));
+  check("USER sees an empty list without the primary action",
+    !V.emptyState(wh, false, "USER").includes('data-act="create"'));
+  check("filtered empty list offers a way back", V.emptyState(wh, true, "ADMIN").includes('data-act="clear"'));
+  check("page head hides the create button from USER",
+    !V.pageShell(wh, "USER").includes('data-act="create"'));
+  check("page head keeps the create button for ADMIN",
+    V.pageShell(wh, "ADMIN").includes('data-act="create"'));
   check("error state offers a retry", V.errorState("boom", "abc123").includes('data-act="retry"'));
   check("error state shows the trace id", V.errorState("boom", "abc123").includes("abc123"));
   check("foot summary counts rows", V.footSummary(25, 612, "คลัง").includes("612"));
@@ -845,6 +856,18 @@ for (const g of N.NAV) {
     }
   }
 }
+// The sidebar mirrors RequireLevel on the API side. If this drifts, a USER is
+// shown a menu entry that answers 403 — or an admin screen goes missing.
+{
+  const M = await mod("../public/assets/js/components/nav-menu.js");
+  check("users entry is declared ADMIN-only", N.NAV_INDEX["users"].minLevel === "ADMIN");
+  check("USER menu drops the users screen", !M.navMenuMarkup("dashboard", "USER").includes("/users.html"));
+  check("ADMIN menu keeps the users screen", M.navMenuMarkup("dashboard", "ADMIN").includes("/users.html"));
+  check("USER menu still has the daily screens", M.navMenuMarkup("dashboard", "USER").includes("/products.html"));
+  check("mayOpen lets an unrestricted item through", N.mayOpen({ id: "x", label: "x", href: "/x", icon: "apps" }, "USER"));
+  check("navFor drops a group left empty", !N.navFor("USER").some((g) => g.items.length === 0));
+}
+
 const navIds = new Set(Object.keys(N.NAV_INDEX));
 // Pages mounted inside the shell on purpose without a sidebar entry.
 const SHELL_ONLY = new Set(["profile"]);
@@ -980,6 +1003,71 @@ console.log("# version");
 // The three coded lists exist in the CHECK constraint, in the Go descriptors
 // and here. This suite covers the rule that keeps the third copy honest:
 // the server decides membership, the local array decides only order.
+console.log("# permissions (stubbed fetch)");
+{
+  const P = await mod("../public/assets/js/core/permissions.js");
+  const S = await mod("../public/assets/js/master/schema.js");
+  const R3 = await mod("../public/assets/js/master/resources.js");
+  const wh = R3.MASTER_BY_NAME["warehouse"];
+  P.reset();
+
+  // Nothing loaded yet: the screen falls back to what v4 does today.
+  check("fallback lets ADMIN write", P.canWrite("warehouse", "ADMIN"));
+  check("fallback refuses USER", !P.canWrite("warehouse", "USER"));
+  check("fallback hides users from USER", !P.canRead("users", "USER"));
+  check("fallback lets USER read master data", P.canRead("warehouse", "USER"));
+
+  globalThis.sessionStorage = (() => {
+    const m = new Map();
+    return {
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => void m.set(k, String(v)),
+      removeItem: (k) => void m.delete(k),
+    };
+  })();
+
+  const realFetchP = globalThis.fetch;
+  let hitsP = 0;
+  const answer = (resources, level) => async () => {
+    hitsP++;
+    return new Response(
+      JSON.stringify({ status: "success", message: "ok", code: "OK", trace_id: "t",
+        data: { level, resources } }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  // The server is the authority on the rule, not the level test written here:
+  // a build that still says `level === "ADMIN"` would get this wrong.
+  globalThis.fetch = answer({ warehouse: { read: true, write: true } }, "USER");
+  await P.loadPermissions();
+  check("server answer beats the fallback", P.canWrite("warehouse", "USER"));
+  check("resource the server did not mention falls back", !P.canWrite("customer", "USER"));
+  check("writable() reads the server map", S.writable(wh, "USER"));
+
+  await P.loadPermissions();
+  check("session cache spares a second call", hitsP === 1, `fetch called ${hitsP}\u00d7`);
+
+  // read-only in the descriptor stays read-only whatever the server says
+  check("readOnly descriptor is never writable", !S.writable({ ...wh, readOnly: true }, "ADMIN"));
+
+  P.reset();
+  globalThis.fetch = answer({ warehouse: { read: true, write: false } }, "ADMIN");
+  await P.loadPermissions();
+  check("an ADMIN the server refuses gets no buttons", !S.writable(wh, "ADMIN"));
+
+  P.reset();
+  globalThis.fetch = async () => {
+    throw new Error("offline");
+  };
+  let threwP = false;
+  await P.loadPermissions().catch(() => (threwP = true));
+  check("loadPermissions never rejects", !threwP);
+  check("after a failure the fallback answers", P.canWrite("warehouse", "ADMIN"));
+  globalThis.fetch = realFetchP;
+  P.reset();
+}
+
 console.log("# enums");
 {
   const E = await mod("../public/assets/js/core/enums.js");

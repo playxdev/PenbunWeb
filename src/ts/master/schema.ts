@@ -21,6 +21,7 @@
 
 import type { IconName } from "../core/icons.js";
 import type { Field, FilterDef, Ref } from "../core/schema.js";
+import { canWrite } from "../core/permissions.js";
 
 // Kind, Field, Ref and FilterDef live in core/schema.ts: PenbunAPI keeps them
 // in `internal/schema`, shared by the CRUD engine and the document engine, and
@@ -101,5 +102,18 @@ export interface MasterResource {
 /** Every write for this resource goes through this path. */
 export const writePath = (r: MasterResource): string => `/${r.name}`;
 
-/** True when the screen may offer create/edit/delete. */
-export const writable = (r: MasterResource): boolean => r.readOnly !== true;
+/**
+ * True when the screen may offer create/edit/delete to this user.
+ *
+ * Two questions, asked in two places on purpose. Whether the *screen* has
+ * writes at all is a property of this descriptor (`readOnly`). Whether *this
+ * user* may perform them is PenbunAPI's `RequireLevelWrite`, read back through
+ * `/meta/permissions` rather than restated here — see core/permissions.ts for
+ * why the rule is not written out twice.
+ *
+ * `level` feeds the fallback for a demo session or an API that cannot be
+ * reached. It is required rather than defaulting, so adding a call site that
+ * forgets it is a compile error instead of a button that answers 403.
+ */
+export const writable = (r: MasterResource, level: string): boolean =>
+  r.readOnly !== true && canWrite(r.name, level);

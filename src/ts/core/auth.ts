@@ -14,6 +14,7 @@
  */
 
 import { ApiError, CODE, get, post } from "./api.js";
+import { reset as resetPermissions } from "./permissions.js";
 import {
   clear,
   currentUser,
@@ -115,12 +116,16 @@ export function isSignedIn(): boolean {
  */
 export async function signIn(username: string, password: string): Promise<Session> {
   const pair = await post<TokenPair>("/auth/login", { username, password }, { auth: false, retry: false });
+  // The permission map is per user and cached for the browser session, so
+  // signing in as someone else on this tab must not inherit the last one.
+  resetPermissions();
   const stored = store(pair);
   return toSession(stored.user, stored.demo);
 }
 
 /** Offline session for reviewing screens with no API running. */
 export function signInDemo(): Session {
+  resetPermissions();
   const stored = storeDemo(DEMO_USER);
   return toSession(stored.user, stored.demo);
 }
@@ -139,6 +144,7 @@ export async function signOut(redirect = "/index.html"): Promise<void> {
     /* revoking is best effort; clearing below is not */
   }
   clear();
+  resetPermissions();
   location.href = redirect;
 }
 

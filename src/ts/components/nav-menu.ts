@@ -4,12 +4,12 @@
  * markup, so both sidebar and any future surface reuse the same source.
  */
 
-import { NAV } from "../core/nav.js";
+import { navFor } from "../core/nav.js";
 import { icon } from "../core/icons.js";
 import { esc } from "../core/format.js";
 
-export function navMenuMarkup(active: string): string {
-  return NAV.map(
+export function navMenuMarkup(active: string, level: string): string {
+  return navFor(level).map(
     (group) => `
     <div class="pb-nav__group">
       <div class="pb-nav__label">${esc(group.label)}</div>

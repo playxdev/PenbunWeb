@@ -33,7 +33,7 @@ export function mountAppLayout(user: Session): HTMLElement {
   shell.className = "pb-shell";
   shell.id = "pb-shell";
   shell.dataset.sidebar = initialSidebarCollapsed() ? "collapsed" : "expanded";
-  shell.innerHTML = `${sidebarMarkup(active)}<div class="pb-main">${topbarMarkup(
+  shell.innerHTML = `${sidebarMarkup(active, user.level)}<div class="pb-main">${topbarMarkup(
     user
   )}<main class="pb-content" id="pb-main"></main>${footerMarkup()}</div>`;
 
