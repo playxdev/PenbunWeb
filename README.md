@@ -244,7 +244,9 @@ session tables do not exist yet.
 | Users (list) | `src/ts/pages/users.ts` | **Done** — `GET /users`, read-only and ADMIN-only |
 | Create a user | `users.html` → เพิ่มผู้ใช้ | **Done** — `POST /users`, bcrypt on the server |
 | Unlock a user | `users.html` → ปลดล็อก | **Done** — `PUT /users/{user_id}/unlock` |
-| Edit / delete a user | — | Blocked — PenbunAPI has no endpoint; `user_level` decides who may write anything at all |
+| Edit / delete a user | — | Blocked — PenbunAPI has no `PUT`/`DELETE /users/{id}`; editing *your own* profile is `PUT /auth/me`, see the row below |
+| Edit your own profile | `profile.html` → บันทึกการแก้ไข | **Done** — `PUT /auth/me`, name and email only; `user_name` and `user_level` are readonly by design |
+| Change your password | `profile.html` → เปลี่ยนรหัสผ่าน | **Done** — `POST /auth/change-password`; the returned token pair replaces the stored one |
 | Permission-based menu | `src/ts/core/nav.ts` | **Done for two levels** — `NavItem.minLevel` hides ผู้ใช้และสิทธิ์ from a USER and `main.ts` turns away a typed URL. Per-screen, per-branch or per-field rights still need role/permission tables; PenbunSQL v11 has none |
 | Write buttons by level | `src/ts/core/permissions.ts` | **Done** — `GET /meta/permissions`; `writable()` asks the server which resources this user may write instead of restating `level === "ADMIN"` |
 | Enum options | `src/ts/core/enums.ts` | **Done** — `GET /meta/enums`; the arrays in `master/resources.ts` are now only a fallback |

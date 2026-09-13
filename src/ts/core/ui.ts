@@ -90,7 +90,37 @@ export interface ConfirmOptions {
   danger?: boolean;
 }
 
+/**
+ * A dialog that collects values instead of just a yes/no.
+ *
+ * confirmDialog resolves after the panel is removed from the document, which
+ * is right for a confirmation and useless for a form: by the time the caller
+ * is resumed, the inputs it wanted to read no longer exist. This one reads
+ * every `[data-field]` in the panel at the moment Confirm is pressed, and
+ * hands back a map keyed by that attribute. Cancel resolves to null, which is
+ * distinguishable from a form submitted with every box left empty.
+ */
+export function formDialog(opts: ConfirmOptions): Promise<Record<string, string> | null> {
+  return openDialog(opts, (panel) => {
+    const out: Record<string, string> = {};
+    panel.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-field]").forEach((el) => {
+      out[el.dataset.field!] = el.value;
+    });
+    return out;
+  });
+}
+
 export function confirmDialog(opts: ConfirmOptions): Promise<boolean> {
+  return openDialog(opts, () => true).then((v) => v === true);
+}
+
+/**
+ * The shared machinery: build, open, trap Escape, resolve, remove.
+ *
+ * `collect` runs while the panel is still in the document, so anything read
+ * out of the markup is read before it is thrown away.
+ */
+function openDialog<T>(opts: ConfirmOptions, collect: (panel: HTMLElement) => T): Promise<T | null> {
   const host = document.createElement("div");
   host.className = "pb-modal";
   host.innerHTML = `<div class="pb-modal__panel" role="alertdialog" aria-modal="true"
@@ -115,11 +145,13 @@ export function confirmDialog(opts: ConfirmOptions): Promise<boolean> {
     host.querySelector<HTMLElement>("[data-confirm]")?.focus();
   });
 
-  return new Promise<boolean>((resolve) => {
+  return new Promise<T | null>((resolve) => {
     const close = (ok: boolean): void => {
+      // อ่านค่าออกจาก panel ก่อนถอดออกจากเอกสาร ไม่ใช่หลัง
+      const value = ok ? collect(host.querySelector<HTMLElement>(".pb-modal__panel")!) : null;
       document.removeEventListener("keydown", onKey);
       host.remove();
-      resolve(ok);
+      resolve(value);
     };
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === "Escape") close(false);

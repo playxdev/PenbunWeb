@@ -424,3 +424,18 @@ fieldset.pb-formgrid {
 .pb-mastercard__title { font-weight: 650; }
 .pb-mastercard__sub { font-size: var(--pb-fs-xs); color: var(--pb-text-2); }
 .pb-mastercard__meta { font-size: var(--pb-fs-xs); color: var(--pb-text-3); }
+
+/* โปรไฟล์ — การ์ดสรุปทางซ้ายต้องสูงเท่าการ์ดแท็บทางขวา
+   .pb-grid เป็น CSS grid ตัวคอลัมน์จึงยืดเต็มแถวอยู่แล้ว แต่ .pb-card ข้างในไม่ได้
+   ยืดตาม การ์ดที่เนื้อหาสั้นกว่าเลยลอยจบกลางแถว */
+[data-page="profile"] .pb-grid > [class*="pb-col-"] > .pb-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* เนื้อหากินที่ว่างที่เหลือ แถบล่าง (เข้าใช้ล่าสุด) จึงไปติดขอบล่างของการ์ด
+   ไม่ใช่ลอยตามความสูงของเนื้อหา */
+[data-page="profile"] .pb-grid > [class*="pb-col-"] > .pb-card > .pb-card__body {
+  flex: 1 1 auto;
+}
