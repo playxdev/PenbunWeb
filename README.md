@@ -247,7 +247,7 @@ session tables do not exist yet.
 | Edit / delete a user | — | Blocked — PenbunAPI has no `PUT`/`DELETE /users/{id}`; editing *your own* profile is `PUT /auth/me`, see the row below |
 | Edit your own profile | `profile.html` → บันทึกการแก้ไข | **Done** — `PUT /auth/me`, name and email only; `user_name` and `user_level` are readonly by design |
 | Change your password | `profile.html` → เปลี่ยนรหัสผ่าน | **Done** — `POST /auth/change-password`; the returned token pair replaces the stored one |
-| Permission-based menu | `src/ts/core/nav.ts` | **Done for two levels** — `NavItem.minLevel` hides ผู้ใช้และสิทธิ์ from a USER and `main.ts` turns away a typed URL. Per-screen, per-branch or per-field rights still need role/permission tables; PenbunSQL v11 has none |
+| Permission-based menu | `src/ts/core/nav.ts` | **Partly done** — `NavItem.minLevel` hides ผู้ใช้และสิทธิ์ from anyone who is not ADMIN, and `main.ts` turns away a typed URL. It still compares `user_level` rather than reading the permission map, so the five roles PenbunSQL v13 seeds all look alike to the sidebar except ADMIN. The map to switch to is already in `GET /auth/me`; per-branch and per-field rights are not designed anywhere yet |
 | Write buttons by level | `src/ts/core/permissions.ts` | **Done** — `GET /meta/permissions`; `writable()` asks the server which resources this user may write instead of restating `level === "ADMIN"` |
 | Enum options | `src/ts/core/enums.ts` | **Done** — `GET /meta/enums`; the arrays in `master/resources.ts` are now only a fallback |
 | Version number | `settings.html`, “About system” | **Done** — `GET /version`, plus `WEB_VERSION` in `core/version.ts` |

@@ -116,9 +116,15 @@ export function groupOf(id: string): string | undefined {
 /**
  * May a user of this level open the screen?
  *
- * PenbunAPI v4 has two levels and ADMIN is the higher one, so this is an
- * equality test rather than a ranking. When tb_role lands, the whole idea of
- * `minLevel` is replaced — not extended with a third string.
+ * An equality test, not a ranking. The only entry that carries `minLevel` is
+ * ผู้ใช้และสิทธิ์, which is ADMIN and nothing else, so equality answers it
+ * exactly — and a ranking would be wrong anyway now that PenbunSQL v13 seeds
+ * roles that are narrower than USER rather than below it: WAREHOUSE is not
+ * "less than" DELIVERY, it is a different slice.
+ *
+ * That also means this is the wrong mechanism to keep. The replacement is the
+ * permission map `GET /auth/me` already returns: an entry should be hidden
+ * when the resource behind it has no `view`, not when a string fails to match.
  */
 export const mayOpen = (item: NavItem, level: string): boolean =>
   item.minLevel === undefined || item.minLevel === level;
